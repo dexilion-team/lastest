@@ -1,4 +1,4 @@
-# 🚀 lastest
+# 🚀 lasTest
 
 > AI-powered automated visual testing CLI that compares live vs dev environments
 
@@ -6,30 +6,38 @@
 [![npm version](https://badge.fury.io/js/lastest.svg)](https://www.npmjs.com/package/lastest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**lastest** automatically scans your codebase, generates Playwright tests using AI, and runs visual regression tests comparing your live and development environments. Get comprehensive reports with side-by-side screenshots and visual diffs.
+**lasTest** automatically scans your codebase, generates Playwright tests using AI, and runs visual regression tests comparing your live and development environments. Get comprehensive reports with side-by-side screenshots and visual diffs.
 
 ## ✨ Features
 
-- 🤖 **AI-Powered Test Generation** - Uses Claude or GitHub Copilot to generate intelligent tests
+- 🤖 **AI-Powered Test Generation** - Uses Claude Pro/Max or GitHub Copilot subscription to generate intelligent tests
 - 🔍 **Smart Route Detection** - Automatically discovers pages from Next.js, React Router, Vue Router, and more
 - 📸 **Visual Regression Testing** - Captures and compares screenshots with pixel-perfect accuracy
 - 🎨 **Beautiful Reports** - Interactive HTML reports with side-by-side comparisons
 - ⚡ **Parallel Execution** - Run tests concurrently for blazing-fast results
 - 🎯 **Zero Configuration** - Works out of the box with sensible defaults
 - 🔧 **Highly Configurable** - Customize everything via `.lastestrc.json`
+- 💾 **Test Caching** - Generated tests are cached for fast re-runs without AI calls
 
 ## 🚀 Quick Start
 
+### Prerequisites
+
+You'll need one of the following:
+- **Claude Pro or Claude Max subscription** + Claude CLI installed
+- **GitHub Copilot subscription** + Copilot CLI installed
+
+### Setup
+
 ```bash
-npx lastest init
+npx lasTest init
 ```
 
 That's it! The CLI will guide you through:
 
-1. **SDK Setup** - Choose between Claude or GitHub Copilot
-2. **Permission** - Confirm codebase scan
-3. **URLs** - Provide your live and dev URLs
-4. **Automated Testing** - Sit back while lastest does the work
+1. **AI Provider** - Choose between Claude Subscription or GitHub Copilot
+2. **URLs** - Provide your live and dev URLs
+3. **Automated Testing** - Sit back while lasTest does the work
 
 ## 📦 Installation
 
@@ -48,41 +56,57 @@ npm install --save-dev lastest
 ### npx (No Installation)
 
 ```bash
-npx lastest init
+npx lasTest init
 ```
 
 ## 📖 Usage
 
 ### Initial Setup
 
-Run this once to create your configuration:
+Run this to create your configuration and generate tests:
 
 ```bash
-lastest init
+lasTest init
 ```
 
 This will:
-- Guide you through AI provider setup (Claude or Copilot)
-- Create a `.lastestrc.json` file in your current directory
-- Run the first test suite
+- Guide you through AI provider setup (Claude Subscription or Copilot Subscription)
+- Scan your codebase for routes
+- Generate tests using AI
+- Create `.lastestrc.json` (config) and `.lastest-tests.json` (cached tests)
+- Run the test suite
 
 ### Re-running Tests
 
-Once configured, simply run:
+Once configured and tests are generated, simply run:
 
 ```bash
-lastest
+lasTest
 ```
 
-This will use your existing `.lastestrc.json` configuration to re-run all tests.
+This will:
+- Load your existing configuration and cached tests
+- **Skip AI generation** (uses cached tests for faster execution)
+- Run tests against both environments
+- Generate a fresh report
+
+### Regenerating Tests
+
+To update your configuration or regenerate tests with AI:
+
+```bash
+lasTest init
+```
+
+When you have an existing config, it will ask if you want to update it. This regenerates tests from scratch.
 
 ### With Options
 
 ```bash
-lastest init \
+lasTest init \
   --live https://example.com \
   --dev http://localhost:3000 \
-  --ai claude \
+  --ai claude-subscription \
   --scan ./src
 ```
 
@@ -92,8 +116,7 @@ The `.lastestrc.json` file is automatically created during `init`:
 
 ```json
 {
-  "aiProvider": "claude-api",
-  "claudeApiKey": "your-api-key",
+  "aiProvider": "claude-subscription",
   "liveUrl": "https://example.com",
   "devUrl": "http://localhost:3000",
   "scanPath": "./src",
@@ -108,11 +131,11 @@ The `.lastestrc.json` file is automatically created during `init`:
 }
 ```
 
-For subscription-based providers, omit the API key:
+Or with GitHub Copilot:
 
 ```json
 {
-  "aiProvider": "claude-subscription",
+  "aiProvider": "copilot-subscription",
   "liveUrl": "https://example.com",
   "devUrl": "http://localhost:3000"
 }
@@ -121,7 +144,7 @@ For subscription-based providers, omit the API key:
 Then run:
 
 ```bash
-lastest init
+lasTest init
 ```
 
 ## 🎯 How It Works
@@ -134,21 +157,12 @@ lastest init
 
 ## 💳 AI Provider Options
 
-**lastest** supports three AI options - choose based on what you already have:
+**lasTest** supports two AI options - choose based on what you already have:
 
 | Option | Cost | Setup | Best For |
 |--------|------|-------|----------|
-| **Claude API** | Pay-per-use ($3/1M input tokens) | API key required | One-time usage, precise control |
 | **Claude Subscription** | Included with Pro/Max ($20-$200/mo) | CLI authentication | Existing Claude Pro/Max users |
 | **GitHub Copilot** | Included with subscription ($10-$19/mo) | CLI authentication | Existing Copilot users |
-
-### Using Claude API (Pay-per-use)
-
-```bash
-# Get API key from: https://console.anthropic.com/
-export ANTHROPIC_API_KEY=your-key
-lastest init --ai claude-api
-```
 
 ### Using Claude Pro/Max Subscription
 
@@ -157,8 +171,8 @@ lastest init --ai claude-api
 npm install -g @anthropic-ai/claude-code
 claude login
 
-# Then use lastest
-lastest init --ai claude-subscription
+# Then use lasTest
+lasTest init --ai claude-subscription
 ```
 
 ### Using GitHub Copilot Subscription
@@ -168,8 +182,8 @@ lastest init --ai claude-subscription
 npm install -g @github/copilot-cli
 gh auth login  # or use: copilot (then /login)
 
-# Then use lastest
-lastest init --ai copilot-subscription
+# Then use lasTest
+lasTest init --ai copilot-subscription
 ```
 
 ## 📊 Output
@@ -201,8 +215,7 @@ The HTML report includes:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `aiProvider` | `'claude-api' \| 'claude-subscription' \| 'copilot-subscription'` | `'claude-api'` | AI provider for test generation |
-| `claudeApiKey` | `string` | - | Claude API key (only for claude-api) |
+| `aiProvider` | `'claude-subscription' \| 'copilot-subscription'` | `'claude-subscription'` | AI provider for test generation |
 | `liveUrl` | `string` | - | Live environment URL |
 | `devUrl` | `string` | - | Development environment URL |
 | `scanPath` | `string` | `'.'` | Path to scan for routes |
@@ -223,17 +236,6 @@ The HTML report includes:
 
 ## 🤖 AI Providers
 
-### Claude API (Pay-per-use)
-
-```bash
-export ANTHROPIC_API_KEY=your-api-key
-lastest init --ai claude-api
-```
-
-- **Cost**: $3 per million input tokens, $15 per million output tokens
-- **Setup**: Get API key from https://console.anthropic.com/
-- **Best for**: One-time projects, precise usage tracking
-
 ### Claude Subscription (Pro/Max)
 
 ```bash
@@ -242,7 +244,7 @@ npm install -g @anthropic-ai/claude-code
 claude login
 
 # Use in any project
-lastest init --ai claude-subscription
+lasTest init --ai claude-subscription
 ```
 
 - **Cost**: Included with Claude Pro ($20/mo) or Max ($200/mo annual)
@@ -257,7 +259,7 @@ npm install -g @github/copilot-cli
 gh auth login
 
 # Use in any project
-lastest init --ai copilot-subscription
+lasTest init --ai copilot-subscription
 ```
 
 - **Cost**: Included with Copilot Pro ($10/mo), Business ($19/user/mo), or Enterprise
@@ -293,7 +295,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          npx lastest init \
+          npx lasTest init \
             --live https://example.com \
             --dev http://localhost:3000 \
             --ai claude

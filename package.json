@@ -4,7 +4,8 @@
   "description": "AI-powered automated visual testing CLI that compares live vs dev environments",
   "main": "dist/index.js",
   "bin": {
-    "lastest": "dist/cli.js"
+    "lastest": "dist/cli.js",
+    "lasTest": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -38,7 +39,6 @@
   "homepage": "https://github.com/yourusername/lastest#readme",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.5",
-    "@anthropic-ai/sdk": "^0.32.0",
     "chalk": "^4.1.2",
     "commander": "^12.0.0",
     "fs-extra": "^11.2.0",

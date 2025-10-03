@@ -8,13 +8,13 @@ import { Logger } from './utils/logger';
 const program = new Command();
 
 program
-  .name('lastest')
+  .name('lasTest')
   .description('AI-powered automated visual testing CLI')
   .version('0.1.0');
 
 program
   .command('init')
-  .description('Initialize lastest configuration and run visual tests')
+  .description('Initialize lasTest configuration and run visual tests')
   .option('-c, --config <path>', 'Path to config file')
   .option('--live <url>', 'Live URL to test')
   .option('--dev <url>', 'Development URL to test')

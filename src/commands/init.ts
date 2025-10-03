@@ -3,12 +3,12 @@ import * as path from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { ConfigManager } from '../config';
+import { TestCache } from '../test-cache';
 import { Logger } from '../utils/logger';
 import { Scanner } from '../scanner';
 import { TestGenerator } from '../generator';
 import { TestRunner } from '../runner';
 import { ReportGenerator } from '../reporter';
-import { ClaudeClient } from '../ai/claude';
 import { ClaudeSubscriptionClient } from '../ai/claude-subscription';
 import { CopilotSubscriptionClient } from '../ai/copilot-subscription';
 import { Config } from '../types';
@@ -35,46 +35,44 @@ export async function initCommand(options: InitOptions) {
       |_|  /_______\\
   `);
 
-  Logger.title('🚀 lastest - Automated Visual Testing');
+  Logger.title('🚀 lasTest - Automated Visual Testing');
 
   // Step 0: Ensure Playwright is installed
   Logger.newLine();
   await ensurePlaywrightInstalled();
 
-  // Load existing config or create new one
-  let config = await ConfigManager.load();
+  // Check for existing configuration
+  Logger.newLine();
+  const existingConfig = await ConfigManager.load();
+  let config: Config;
 
-  if (!config) {
-    Logger.newLine();
-    config = await promptForConfig(options);
-    await ConfigManager.save(config);
-    Logger.newLine();
-    Logger.success('Configuration saved to .lastestrc.json');
-  } else {
-    Logger.info('Using existing configuration from .lastestrc.json');
+  if (existingConfig) {
+    Logger.info('Found existing configuration');
+    const { reconfigure } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'reconfigure',
+        message: 'Would you like to update your configuration?',
+        default: false,
+      },
+    ]);
 
-    // Override with CLI options if provided
-    if (options.live) config.liveUrl = options.live;
-    if (options.dev) config.devUrl = options.dev;
-    if (options.scan) config.scanPath = options.scan;
-    if (options.ai)
-      config.aiProvider = options.ai as 'claude-api' | 'claude-subscription' | 'copilot-subscription';
-
-    // Verify existing config
-    Logger.newLine();
-    Logger.step('Verifying AI setup...');
-    const isValid = await verifyAISetup(config);
-
-    if (!isValid) {
-      Logger.warn('Existing AI setup is invalid. Let\'s reconfigure...');
+    if (reconfigure) {
       Logger.newLine();
       config = await promptForConfig(options);
       await ConfigManager.save(config);
       Logger.newLine();
       Logger.success('Configuration updated');
     } else {
-      Logger.success('AI setup verified!');
+      config = existingConfig;
+      Logger.info('Using existing configuration');
     }
+  } else {
+    Logger.newLine();
+    config = await promptForConfig(options);
+    await ConfigManager.save(config);
+    Logger.newLine();
+    Logger.success('Configuration saved to .lastestrc.json');
   }
 
   // Step 1: Scan codebase for routes
@@ -90,6 +88,10 @@ export async function initCommand(options: InitOptions) {
   const generator = new TestGenerator(config);
   const tests = await generator.generateTests(routes);
   Logger.success(`Generated ${tests.length} test cases`);
+
+  // Save generated tests to cache
+  await TestCache.save(tests);
+  Logger.dim('Tests saved to .lastest-tests.json');
 
   // Step 3: Run tests against both environments
   Logger.newLine();
@@ -114,14 +116,6 @@ export async function initCommand(options: InitOptions) {
 async function verifyAISetup(config: Config): Promise<boolean> {
   try {
     switch (config.aiProvider) {
-      case 'claude-api':
-        if (!config.claudeApiKey) {
-          throw new Error('Claude API key is required');
-        }
-        const claudeClient = new ClaudeClient(config.claudeApiKey);
-        await claudeClient.testConnection();
-        break;
-
       case 'claude-subscription':
         const claudeSubClient = new ClaudeSubscriptionClient();
         await claudeSubClient.testConnection();
@@ -174,7 +168,6 @@ async function getConfigAnswers(options: InitOptions) {
       name: 'aiProvider',
       message: 'Which AI provider would you like to use?',
       choices: [
-        { name: 'Claude API - Pay per use (requires API key)', value: 'claude-api' },
         {
           name: 'Claude Subscription - Use existing Pro/Max plan (free with subscription)',
           value: 'claude-subscription',
@@ -184,14 +177,7 @@ async function getConfigAnswers(options: InitOptions) {
           value: 'copilot-subscription',
         },
       ],
-      default: options.ai || 'claude-api',
-    },
-    {
-      type: 'password',
-      name: 'claudeApiKey',
-      message: 'Enter your Claude API key:',
-      when: (answers) => answers.aiProvider === 'claude-api',
-      validate: (input) => input.length > 0 || 'API key is required',
+      default: options.ai || 'claude-subscription',
     },
     {
       type: 'confirm',

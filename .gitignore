@@ -19,9 +19,10 @@ coverage/
 .env.local
 .env.*.local
 
-# Config
+# Config and cache
 .lastestrc.json
 .lastestrc
+.lastest-tests.json
 
 # Logs
 logs/

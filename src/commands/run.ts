@@ -1,16 +1,15 @@
 import { ConfigManager } from '../config';
+import { TestCache } from '../test-cache';
 import { Logger } from '../utils/logger';
-import { Scanner } from '../scanner';
-import { TestGenerator } from '../generator';
 import { TestRunner } from '../runner';
 import { ReportGenerator } from '../reporter';
 import * as path from 'path';
 
 /**
- * Run command - executes tests with existing configuration
+ * Run command - executes tests with existing configuration and cached tests
  */
 export async function runCommand() {
-  Logger.title('🚀 lastest - Automated Visual Testing');
+  Logger.title('🚀 lasTest - Automated Visual Testing');
 
   // Load existing config
   Logger.newLine();
@@ -18,35 +17,34 @@ export async function runCommand() {
   const config = await ConfigManager.load();
 
   if (!config) {
-    Logger.error('No configuration found. Please run: lastest init');
+    Logger.error('No configuration found. Please run: lasTest init');
     Logger.dim('This will create a .lastestrc.json file in the current directory.');
     process.exit(1);
   }
 
   Logger.success('Configuration loaded from .lastestrc.json');
 
-  // Step 1: Scan codebase for routes
+  // Load cached tests
   Logger.newLine();
-  Logger.step('Scanning codebase for routes...');
-  const scanner = new Scanner(config.scanPath);
-  const routes = await scanner.scan();
-  Logger.success(`Found ${routes.length} routes to test`);
+  Logger.step('Loading cached tests...');
+  const tests = await TestCache.load();
 
-  // Step 2: Generate tests using AI
-  Logger.newLine();
-  Logger.step('Generating tests using AI...');
-  const generator = new TestGenerator(config);
-  const tests = await generator.generateTests(routes);
-  Logger.success(`Generated ${tests.length} test cases`);
+  if (!tests || tests.length === 0) {
+    Logger.error('No cached tests found. Please run: lasTest init');
+    Logger.dim('This will scan your codebase and generate tests using AI.');
+    process.exit(1);
+  }
 
-  // Step 3: Run tests against both environments
+  Logger.success(`Loaded ${tests.length} test cases from cache`);
+
+  // Run tests against both environments
   Logger.newLine();
   Logger.step('Running tests...');
   const runner = new TestRunner(config);
   const results = await runner.runTests(tests);
   Logger.success(`Completed ${results.length} tests`);
 
-  // Step 4: Generate report
+  // Generate report
   Logger.newLine();
   Logger.step('Generating report...');
   const reporter = new ReportGenerator(config);

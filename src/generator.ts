@@ -1,25 +1,17 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { Config, RouteInfo, TestCase } from './types';
-import { ClaudeClient } from './ai/claude';
 import { ClaudeSubscriptionClient } from './ai/claude-subscription';
 import { CopilotSubscriptionClient } from './ai/copilot-subscription';
 import { Logger } from './utils/logger';
 
-type AIClient = ClaudeClient | ClaudeSubscriptionClient | CopilotSubscriptionClient;
+type AIClient = ClaudeSubscriptionClient | CopilotSubscriptionClient;
 
 export class TestGenerator {
   private aiClient: AIClient;
 
   constructor(private config: Config) {
     switch (config.aiProvider) {
-      case 'claude-api':
-        if (!config.claudeApiKey) {
-          throw new Error('Claude API key is required');
-        }
-        this.aiClient = new ClaudeClient(config.claudeApiKey);
-        break;
-
       case 'claude-subscription':
         this.aiClient = new ClaudeSubscriptionClient();
         break;

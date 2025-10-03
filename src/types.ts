@@ -1,6 +1,5 @@
 export interface Config {
-  aiProvider: 'claude-api' | 'claude-subscription' | 'copilot-subscription';
-  claudeApiKey?: string; // Only required for 'claude-api'
+  aiProvider: 'claude-subscription' | 'copilot-subscription';
   liveUrl: string;
   devUrl: string;
   scanPath: string;

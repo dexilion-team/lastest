@@ -64,7 +64,7 @@ interface Config {
 
 ### `aiProvider`
 
-**Type:** `'claude-api' | 'claude-subscription' | 'copilot-subscription'`
+**Type:** `'claude-subscription' | 'copilot-subscription'`
 **Required:** Yes
 **Default:** `'claude-api'`
 
