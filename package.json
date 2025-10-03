@@ -1,0 +1,75 @@
+{
+  "name": "lastest",
+  "version": "0.1.0",
+  "description": "AI-powered automated visual testing CLI that compares live vs dev environments",
+  "main": "dist/index.js",
+  "bin": {
+    "lastest": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "visual-testing",
+    "playwright",
+    "regression",
+    "e2e",
+    "testing",
+    "automation",
+    "screenshot",
+    "comparison",
+    "ai",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/lastest.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/lastest/issues"
+  },
+  "homepage": "https://github.com/yourusername/lastest#readme",
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.5",
+    "@anthropic-ai/sdk": "^0.32.0",
+    "chalk": "^4.1.2",
+    "commander": "^12.0.0",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
+    "inquirer": "^8.2.6",
+    "pixelmatch": "^5.3.0",
+    "playwright": "^1.49.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.11.16",
+    "@types/pixelmatch": "^5.2.6",
+    "@types/pngjs": "^6.0.5",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "@typescript-eslint/parser": "^6.20.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "@github/copilot-cli": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@github/copilot-cli": {
+      "optional": true
+    }
+  }
+}
