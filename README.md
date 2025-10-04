@@ -11,11 +11,13 @@
 ## ✨ Features
 
 - 🤖 **AI-Powered Test Generation** - Uses Claude Pro/Max or GitHub Copilot subscription to generate intelligent tests
+- 📝 **Template Mode** - Skip AI entirely for simple screenshot tests (faster, no AI costs)
 - 🔍 **Smart Route Detection** - Automatically discovers pages from Next.js, React Router, Vue Router, and more
+- 🧠 **AI Route Detection** - Optional AI-powered route discovery for complex routing patterns
+- 🎯 **Custom Test Instructions** - Add your own AI instructions (e.g., "Click buttons, fill forms")
 - 📸 **Visual Regression Testing** - Captures and compares screenshots with pixel-perfect accuracy
 - 🎨 **Beautiful Reports** - Interactive HTML reports with side-by-side comparisons
 - ⚡ **Parallel Execution** - Run tests concurrently for blazing-fast results
-- 🎯 **Zero Configuration** - Works out of the box with sensible defaults
 - 🔧 **Highly Configurable** - Customize everything via `.lastestrc.json`
 - 💾 **Test Caching** - Generated tests are cached for fast re-runs without AI calls
 
@@ -25,7 +27,7 @@
 
 You'll need one of the following:
 - **Claude Pro or Claude Max subscription** + Claude CLI installed
-- **GitHub Copilot subscription** + Copilot CLI installed
+- **GitHub Copilot subscription** (Pro/Business/Enterprise) + Copilot CLI installed (requires Node.js 22+)
 
 ### Setup
 
@@ -149,11 +151,24 @@ lasTest init
 
 ## 🎯 How It Works
 
+### AI Mode (Default)
 1. **Scan** - Analyzes your codebase to discover all routes/pages
 2. **Generate** - Uses AI to create intelligent Playwright tests for each page
 3. **Execute** - Runs tests against both live and dev environments
 4. **Compare** - Performs pixel-perfect comparison of screenshots
 5. **Report** - Generates beautiful HTML and Markdown reports
+
+### Template Mode (No AI)
+1. **Scan** - Analyzes your codebase to discover all routes/pages
+2. **Generate** - Creates simple screenshot tests from templates (no AI calls)
+3. **Execute** - Runs tests against both live and dev environments
+4. **Compare** - Performs pixel-perfect comparison of screenshots
+5. **Report** - Generates beautiful HTML and Markdown reports
+
+**When to use Template Mode:**
+- You want fast test generation without AI costs
+- You only need basic screenshot comparisons
+- You don't need custom interactions (button clicks, form fills, etc.)
 
 ## 💳 AI Provider Options
 
@@ -178,9 +193,16 @@ lasTest init --ai claude-subscription
 ### Using GitHub Copilot Subscription
 
 ```bash
-# One-time setup
-npm install -g @github/copilot-cli
-gh auth login  # or use: copilot (then /login)
+# One-time setup (requires Node.js 22+)
+npm install -g @github/copilot
+
+# Authenticate (choose one):
+# Option 1: Interactive login
+copilot
+# Then use /login command
+
+# Option 2: Use GitHub token
+export GITHUB_TOKEN=your_token
 
 # Then use lasTest
 lasTest init --ai copilot-subscription
@@ -215,7 +237,10 @@ The HTML report includes:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `aiProvider` | `'claude-subscription' \| 'copilot-subscription'` | `'claude-subscription'` | AI provider for test generation |
+| `testGenerationMode` | `'ai' \| 'template'` | `'ai'` | Test generation mode (AI or template) |
+| `aiProvider` | `'claude-subscription' \| 'copilot-subscription'` | `'claude-subscription'` | AI provider for test generation (when mode is 'ai') |
+| `useAIRouteDetection` | `boolean` | `false` | Use AI to detect routes (more accurate but slower) |
+| `customTestInstructions` | `string` | - | Custom instructions for AI test generation (e.g., "Click buttons, fill forms") |
 | `liveUrl` | `string` | - | Live environment URL |
 | `devUrl` | `string` | - | Development environment URL |
 | `scanPath` | `string` | `'.'` | Path to scan for routes |
@@ -254,17 +279,21 @@ lasTest init --ai claude-subscription
 ### GitHub Copilot Subscription
 
 ```bash
-# One-time global setup
-npm install -g @github/copilot-cli
-gh auth login
+# One-time global setup (requires Node.js 22+)
+npm install -g @github/copilot
+
+# Authenticate with /login or GITHUB_TOKEN
+copilot
+# Then enter: /login
 
 # Use in any project
 lasTest init --ai copilot-subscription
 ```
 
 - **Cost**: Included with Copilot Pro ($10/mo), Business ($19/user/mo), or Enterprise
-- **Setup**: GitHub authentication via gh CLI or Copilot CLI
+- **Setup**: Interactive /login or GITHUB_TOKEN environment variable
 - **Best for**: Existing Copilot subscribers
+- **Requirements**: Node.js 22+ and npm 10+
 
 ## 🔥 Advanced Usage
 

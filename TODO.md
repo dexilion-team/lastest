@@ -1,6 +1,12 @@
-- lasTest
-- Hashrouter support
+- ✓ Hashrouter support (completed)
+- ✓ AI-powered route detection as configurable option (completed)
+- ✓ Custom instructions for AI test generation (completed)
+- ✓ Template-based test generation without AI (completed)
+- ✓ Documentation cleanup (completed)
 - test non claude sdk paths and remove
-- custom instructions for AI test gen
-- cleanup docu, contributing, 
 
+- provide the file results as links
+- offer to install if something is missing and run that command
+- hashrouter support?
+- % difference calculation
+- click on image to fullscreen and zoom in in report

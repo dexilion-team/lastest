@@ -108,18 +108,56 @@ lastest init
 ```
 lastest/
 ├── src/
-│   ├── cli.ts              # CLI entry point
-│   ├── commands/           # Command implementations
-│   ├── scanner.ts          # Codebase scanner
-│   ├── ai/                 # AI integrations
-│   ├── runner.ts           # Test runner
-│   ├── differ.ts           # Screenshot comparison
-│   ├── reporter.ts         # Report generation
-│   └── utils/              # Utility functions
-├── tests/                  # Test files
-├── examples/               # Example projects
-└── docs/                   # Documentation
+│   ├── cli.ts                    # CLI entry point
+│   ├── commands/                 # Command implementations
+│   │   ├── init.ts              # Full pipeline with setup
+│   │   └── run.ts               # Fast re-run with cached tests
+│   ├── scanner.ts                # Codebase scanner (with AI route detection)
+│   ├── generator.ts              # Test generator orchestrator
+│   ├── template-generator.ts     # Template-based test generator
+│   ├── ai/                       # AI integrations
+│   │   ├── claude-subscription.ts
+│   │   └── copilot-subscription.ts
+│   ├── runner.ts                 # Test runner
+│   ├── differ.ts                 # Screenshot comparison
+│   ├── reporter.ts               # Report generation
+│   ├── config.ts                 # Configuration manager
+│   ├── test-cache.ts             # Test cache persistence
+│   ├── types.ts                  # TypeScript interfaces
+│   └── utils/                    # Utility functions
+├── tests/                        # Test files
+├── examples/                     # Example projects
+└── docs/                         # Documentation
 ```
+
+## Key Architecture Patterns
+
+### Test Generation Modes
+
+**AI Mode (default):**
+- Uses Claude or Copilot to generate custom tests
+- Supports custom instructions for interactions
+- Optional AI-powered route detection
+- Requires AI provider authentication
+
+**Template Mode:**
+- Generates simple screenshot tests from templates
+- No AI calls or costs
+- Faster test generation
+- No authentication required
+
+### Route Detection Strategies
+
+**Traditional Scanning:**
+- Framework-specific pattern matching
+- Glob patterns and regex
+- Fast but may miss complex routes
+
+**AI-Powered Detection:**
+- Analyzes codebase files with AI
+- Understands complex routing patterns
+- Slower but more comprehensive
+- Enabled via `useAIRouteDetection: true`
 
 ## Coding Standards
 

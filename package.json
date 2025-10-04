@@ -65,10 +65,10 @@
     "node": ">=18.0.0"
   },
   "peerDependencies": {
-    "@github/copilot-cli": "^1.0.0"
+    "@github/copilot": "^1.0.0"
   },
   "peerDependenciesMeta": {
-    "@github/copilot-cli": {
+    "@github/copilot": {
       "optional": true
     }
   }

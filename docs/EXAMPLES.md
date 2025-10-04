@@ -318,6 +318,111 @@ workflows:
       - visual-tests
 ```
 
+## Template Mode Examples
+
+### Basic Template Mode (No AI)
+
+Fast test generation without AI costs - perfect for simple screenshot comparisons.
+
+**config.json:**
+```json
+{
+  "testGenerationMode": "template",
+  "liveUrl": "https://example.com",
+  "devUrl": "http://localhost:3000",
+  "scanPath": "./src"
+}
+```
+
+**Run:**
+```bash
+npx lasTest init --config config.json
+```
+
+This will:
+- Scan routes using traditional detection (no AI)
+- Generate simple screenshot tests from templates
+- No AI provider setup required
+- Faster test generation
+
+### Template Mode with Custom Instructions
+
+Even in template mode, you can document custom instructions (they won't be executed but will be in the test files for reference):
+
+**config.json:**
+```json
+{
+  "testGenerationMode": "template",
+  "customTestInstructions": "Should test navigation buttons and form submissions",
+  "liveUrl": "https://example.com",
+  "devUrl": "http://localhost:3000"
+}
+```
+
+## AI-Powered Examples
+
+### AI Route Detection
+
+Use AI to detect complex routing patterns that traditional scanning might miss:
+
+**config.json:**
+```json
+{
+  "testGenerationMode": "ai",
+  "aiProvider": "claude-subscription",
+  "useAIRouteDetection": true,
+  "liveUrl": "https://example.com",
+  "devUrl": "http://localhost:3000",
+  "scanPath": "./src"
+}
+```
+
+**Best for:**
+- Complex routing configurations
+- Custom routing solutions
+- Nested or dynamic route structures
+- Micro-frontend architectures
+
+### Custom Test Instructions
+
+Generate tests with specific interactions:
+
+**config.json:**
+```json
+{
+  "testGenerationMode": "ai",
+  "aiProvider": "claude-subscription",
+  "customTestInstructions": "Click all navigation buttons, verify no console errors, and check that modals open correctly",
+  "liveUrl": "https://example.com",
+  "devUrl": "http://localhost:3000"
+}
+```
+
+**Examples of custom instructions:**
+- `"Click all CTA buttons and verify they navigate correctly"`
+- `"Fill out contact forms and submit"`
+- `"Test mobile menu toggle and navigation"`
+- `"Verify lazy-loaded images appear"`
+- `"Click through product carousel"`
+
+### Combined AI Features
+
+Use all AI features together for maximum test quality:
+
+**config.json:**
+```json
+{
+  "testGenerationMode": "ai",
+  "aiProvider": "claude-subscription",
+  "useAIRouteDetection": true,
+  "customTestInstructions": "Click all interactive elements, fill forms, and verify animations complete",
+  "liveUrl": "https://example.com",
+  "devUrl": "http://localhost:3000",
+  "scanPath": "./src",
+  "outputDir": "comprehensive-tests"
+}
+```
+
 ## Advanced Scenarios
 
 ### Multiple Viewports

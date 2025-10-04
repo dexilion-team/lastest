@@ -1,4 +1,4 @@
-import { RouteInfo } from '../types';
+import { RouteInfo, Config } from '../types';
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -11,7 +11,7 @@ const execAsync = promisify(exec);
  * Requires: npm install -g @anthropic-ai/claude-code && claude login
  */
 export class ClaudeSubscriptionClient {
-  constructor() {
+  constructor(private config?: Config) {
     // No API key needed - uses authenticated CLI
   }
 
@@ -85,7 +85,7 @@ export class ClaudeSubscriptionClient {
   }
 
   private buildPrompt(route: RouteInfo): string {
-    return `Generate a Playwright test for the following route:
+    const basePrompt = `Generate a Playwright test for the following route:
 
 Route: ${route.path}
 Type: ${route.type}
@@ -97,12 +97,14 @@ Requirements:
 3. Check for basic page functionality (page loads, no console errors)
 4. Use proper Playwright best practices
 5. Make the test reusable for both live and dev environments
+${this.config?.customTestInstructions ? `6. ${this.config.customTestInstructions}` : ''}
 
 Return ONLY the TypeScript test code, no explanations. The test should:
 - Import necessary Playwright modules
 - Export a function called 'test' that accepts (page, baseUrl, screenshotPath)
 - Navigate to baseUrl + route.path
 - Wait for page to be fully loaded
+${this.config?.customTestInstructions ? `- ${this.config.customTestInstructions}` : ''}
 - Take a screenshot with proper naming
 - Return screenshot path
 
@@ -114,6 +116,8 @@ export async function test(page: Page, baseUrl: string, screenshotPath: string) 
   // Test implementation
 }
 \`\`\``;
+
+    return basePrompt;
   }
 
   private extractCode(text: string): string {

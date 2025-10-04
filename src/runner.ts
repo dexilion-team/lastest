@@ -71,6 +71,9 @@ export class TestRunner {
     const startTime = Date.now();
     const screenshotPath = path.join(screenshotsDir, `${test.name}.png`);
 
+    // Build the actual URL that will be tested
+    const testUrl = this.buildTestUrl(baseUrl, test);
+
     try {
       if (!this.browser) {
         throw new Error('Browser not initialized');
@@ -92,7 +95,7 @@ export class TestRunner {
 
         return {
           route: test.route,
-          url: baseUrl + test.route,
+          url: testUrl,
           environment,
           passed: true,
           screenshot: screenshotPath,
@@ -105,7 +108,7 @@ export class TestRunner {
 
         return {
           route: test.route,
-          url: baseUrl + test.route,
+          url: testUrl,
           environment,
           passed: false,
           screenshot: screenshotPath,
@@ -118,7 +121,7 @@ export class TestRunner {
 
       return {
         route: test.route,
-        url: baseUrl + test.route,
+        url: testUrl,
         environment,
         passed: false,
         screenshot: screenshotPath,
@@ -126,6 +129,13 @@ export class TestRunner {
         error: (error as Error).message,
       };
     }
+  }
+
+  private buildTestUrl(baseUrl: string, test: TestCase): string {
+    if (test.routerType === 'hash') {
+      return baseUrl + '/#' + test.route;
+    }
+    return baseUrl + test.route;
   }
 
   private async executeTest(
@@ -139,7 +149,7 @@ export class TestRunner {
 
     try {
       // Navigate to the page
-      const url = baseUrl + test.route;
+      const url = this.buildTestUrl(baseUrl, test);
       await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
 
       // Wait for page to be fully loaded

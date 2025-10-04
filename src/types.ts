@@ -11,6 +11,9 @@ export interface Config {
   diffThreshold?: number;
   parallel?: boolean;
   maxConcurrency?: number;
+  useAIRouteDetection?: boolean;
+  customTestInstructions?: string;
+  testGenerationMode?: 'ai' | 'template';
 }
 
 export interface RouteInfo {
@@ -18,6 +21,7 @@ export interface RouteInfo {
   type: 'static' | 'dynamic';
   filePath?: string;
   component?: string;
+  routerType?: 'hash' | 'browser';
 }
 
 export interface TestCase {
@@ -25,6 +29,7 @@ export interface TestCase {
   route: string;
   code: string;
   filePath: string;
+  routerType?: 'hash' | 'browser';
 }
 
 export interface TestResult {

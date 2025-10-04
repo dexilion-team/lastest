@@ -78,7 +78,7 @@ export async function initCommand(options: InitOptions) {
   // Step 1: Scan codebase for routes
   Logger.newLine();
   Logger.step('Scanning codebase for routes...');
-  const scanner = new Scanner(config.scanPath);
+  const scanner = new Scanner(config.scanPath, config);
   const routes = await scanner.scan();
   Logger.success(`Found ${routes.length} routes to test`);
 
@@ -114,6 +114,11 @@ export async function initCommand(options: InitOptions) {
 }
 
 async function verifyAISetup(config: Config): Promise<boolean> {
+  // Skip AI verification if using template mode
+  if (config.testGenerationMode === 'template') {
+    return true;
+  }
+
   try {
     switch (config.aiProvider) {
       case 'claude-subscription':
@@ -165,6 +170,22 @@ async function getConfigAnswers(options: InitOptions) {
   const answers = await inquirer.prompt([
     {
       type: 'list',
+      name: 'testGenerationMode',
+      message: 'How would you like to generate tests?',
+      choices: [
+        {
+          name: 'AI-powered - Generate custom tests with intelligent interactions',
+          value: 'ai',
+        },
+        {
+          name: 'Template - Simple screenshot tests (no AI, faster)',
+          value: 'template',
+        },
+      ],
+      default: 'ai',
+    },
+    {
+      type: 'list',
       name: 'aiProvider',
       message: 'Which AI provider would you like to use?',
       choices: [
@@ -177,6 +198,7 @@ async function getConfigAnswers(options: InitOptions) {
           value: 'copilot-subscription',
         },
       ],
+      when: (answers) => answers.testGenerationMode === 'ai',
       default: options.ai || 'claude-subscription',
     },
     {
@@ -193,10 +215,24 @@ async function getConfigAnswers(options: InitOptions) {
       name: 'copilotSubscriptionSetup',
       message:
         'Have you installed and authenticated GitHub Copilot CLI?\n' +
-        '  Run: npm install -g @github/copilot-cli\n' +
-        '  Then authenticate with: copilot (use /login) or gh auth login',
+        '  Install: npm install -g @github/copilot (requires Node.js 22+)\n' +
+        '  Auth: Run copilot and use /login, or set GITHUB_TOKEN env var',
       when: (answers) => answers.aiProvider === 'copilot-subscription',
       default: false,
+    },
+    {
+      type: 'confirm',
+      name: 'useAIRouteDetection',
+      message: 'Use AI for route detection? (More accurate but slower)',
+      when: (answers) => answers.testGenerationMode === 'ai',
+      default: false,
+    },
+    {
+      type: 'input',
+      name: 'customTestInstructions',
+      message: 'Custom test instructions (optional, e.g., "Click all buttons, fill forms"):',
+      when: (answers) => answers.testGenerationMode === 'ai',
+      default: '',
     },
     {
       type: 'input',
