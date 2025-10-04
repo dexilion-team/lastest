@@ -47,26 +47,12 @@ export async function initCommand(options: InitOptions) {
   let config: Config;
 
   if (existingConfig) {
-    Logger.info('Found existing configuration');
-    const { reconfigure } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'reconfigure',
-        message: 'Would you like to update your configuration?',
-        default: false,
-      },
-    ]);
-
-    if (reconfigure) {
-      Logger.newLine();
-      config = await promptForConfig(options);
-      await ConfigManager.save(config);
-      Logger.newLine();
-      Logger.success('Configuration updated');
-    } else {
-      config = existingConfig;
-      Logger.info('Using existing configuration');
-    }
+    Logger.info('Found existing configuration - prepopulating answers');
+    Logger.newLine();
+    config = await promptForConfig(options, existingConfig);
+    await ConfigManager.save(config);
+    Logger.newLine();
+    Logger.success('Configuration updated');
   } else {
     Logger.newLine();
     config = await promptForConfig(options);
@@ -166,7 +152,92 @@ async function ensurePlaywrightInstalled(): Promise<void> {
   }
 }
 
-async function getConfigAnswers(options: InitOptions) {
+async function ensureAIDependency(config: Config): Promise<void> {
+  // Skip if using template mode (no AI needed)
+  if (config.testGenerationMode === 'template') {
+    return;
+  }
+
+  const provider = config.aiProvider;
+
+  if (provider === 'claude-subscription') {
+    Logger.step('Checking Claude CLI installation...');
+
+    try {
+      await execAsync('claude --version', { timeout: 5000 });
+      Logger.success('Claude CLI is installed');
+    } catch (error) {
+      Logger.warn('Claude CLI not installed');
+
+      const { installClaude } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'installClaude',
+          message: 'Would you like to install Claude CLI now?',
+          default: true,
+        },
+      ]);
+
+      if (installClaude) {
+        try {
+          const { execSync } = require('child_process');
+          Logger.step('Installing Claude CLI...');
+          execSync('npm install -g @anthropic-ai/claude-code', {
+            stdio: 'inherit',
+          });
+          Logger.success('Claude CLI installed successfully');
+          Logger.info('Please run: claude login');
+        } catch (installError) {
+          Logger.error('Failed to install Claude CLI automatically');
+          throw new Error(
+            'Please install Claude CLI manually:\n  npm install -g @anthropic-ai/claude-code\n  claude login'
+          );
+        }
+      } else {
+        throw new Error('Claude CLI is required for claude-subscription provider');
+      }
+    }
+  } else if (provider === 'copilot-subscription') {
+    Logger.step('Checking GitHub Copilot CLI installation...');
+
+    try {
+      await execAsync('copilot --version', { timeout: 5000 });
+      Logger.success('GitHub Copilot CLI is installed');
+    } catch (error) {
+      Logger.warn('GitHub Copilot CLI not installed');
+
+      const { installCopilot } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'installCopilot',
+          message: 'Would you like to install GitHub Copilot CLI now? (requires Node.js 22+)',
+          default: true,
+        },
+      ]);
+
+      if (installCopilot) {
+        try {
+          const { execSync } = require('child_process');
+          Logger.step('Installing GitHub Copilot CLI...');
+          execSync('npm install -g @github/copilot', {
+            stdio: 'inherit',
+          });
+          Logger.success('GitHub Copilot CLI installed successfully');
+          Logger.info('Please authenticate using: copilot (then use /login command)');
+        } catch (installError) {
+          Logger.error('Failed to install GitHub Copilot CLI automatically');
+          throw new Error(
+            'Please install GitHub Copilot CLI manually:\n  npm install -g @github/copilot\n  Then run: copilot (and use /login command)'
+          );
+        }
+      } else {
+        throw new Error('GitHub Copilot CLI is required for copilot-subscription provider');
+      }
+    }
+  }
+}
+
+async function getConfigAnswers(options: InitOptions, existingConfig?: Config) {
   const answers = await inquirer.prompt([
     {
       type: 'list',
@@ -182,7 +253,7 @@ async function getConfigAnswers(options: InitOptions) {
           value: 'template',
         },
       ],
-      default: 'ai',
+      default: existingConfig?.testGenerationMode || 'ai',
     },
     {
       type: 'list',
@@ -199,53 +270,34 @@ async function getConfigAnswers(options: InitOptions) {
         },
       ],
       when: (answers) => answers.testGenerationMode === 'ai',
-      default: options.ai || 'claude-subscription',
-    },
-    {
-      type: 'confirm',
-      name: 'claudeSubscriptionSetup',
-      message:
-        'Have you installed and authenticated Claude CLI?\n' +
-        '  Run: npm install -g @anthropic-ai/claude-code && claude login',
-      when: (answers) => answers.aiProvider === 'claude-subscription',
-      default: false,
-    },
-    {
-      type: 'confirm',
-      name: 'copilotSubscriptionSetup',
-      message:
-        'Have you installed and authenticated GitHub Copilot CLI?\n' +
-        '  Install: npm install -g @github/copilot (requires Node.js 22+)\n' +
-        '  Auth: Run copilot and use /login, or set GITHUB_TOKEN env var',
-      when: (answers) => answers.aiProvider === 'copilot-subscription',
-      default: false,
+      default: options.ai || existingConfig?.aiProvider || 'claude-subscription',
     },
     {
       type: 'confirm',
       name: 'useAIRouteDetection',
       message: 'Use AI for route detection? (More accurate but slower)',
       when: (answers) => answers.testGenerationMode === 'ai',
-      default: false,
+      default: existingConfig?.useAIRouteDetection || false,
     },
     {
       type: 'input',
       name: 'customTestInstructions',
       message: 'Custom test instructions (optional, e.g., "Click all buttons, fill forms"):',
       when: (answers) => answers.testGenerationMode === 'ai',
-      default: '',
+      default: existingConfig?.customTestInstructions || '',
     },
     {
       type: 'input',
       name: 'scanPath',
       message: 'Path to scan for routes:',
-      default: options.scan || '.',
+      default: options.scan || existingConfig?.scanPath || '.',
       validate: (input) => input.length > 0 || 'Path is required',
     },
     {
       type: 'input',
       name: 'liveUrl',
       message: 'Live URL:',
-      default: options.live,
+      default: options.live || existingConfig?.liveUrl,
       validate: (input) => {
         try {
           new URL(input);
@@ -259,7 +311,7 @@ async function getConfigAnswers(options: InitOptions) {
       type: 'input',
       name: 'devUrl',
       message: 'Development URL:',
-      default: options.dev,
+      default: options.dev || existingConfig?.devUrl,
       validate: (input) => {
         try {
           new URL(input);
@@ -274,19 +326,45 @@ async function getConfigAnswers(options: InitOptions) {
   return answers;
 }
 
-async function promptForConfig(options: InitOptions): Promise<Config> {
+async function promptForConfig(options: InitOptions, existingConfig?: Config): Promise<Config> {
   let configValid = false;
   let config: Config | null = null;
 
   while (!configValid) {
     // Get config from user
-    const answers = await getConfigAnswers(options);
+    const answers = await getConfigAnswers(options, existingConfig);
     const defaults = ConfigManager.getDefaultConfig();
 
     config = {
       ...defaults,
       ...answers,
     } as Config;
+
+    // Ensure AI dependency is installed before testing setup
+    Logger.newLine();
+    try {
+      await ensureAIDependency(config);
+    } catch (error) {
+      Logger.error((error as Error).message);
+      Logger.newLine();
+      const { retry } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'retry',
+          message: 'Would you like to reconfigure?',
+          default: true,
+        },
+      ]);
+
+      if (!retry) {
+        throw error;
+      }
+
+      Logger.newLine();
+      Logger.info('Let\'s try again...');
+      Logger.newLine();
+      continue;
+    }
 
     // Test AI setup
     Logger.newLine();

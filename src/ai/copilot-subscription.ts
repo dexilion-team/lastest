@@ -22,8 +22,9 @@ export class CopilotSubscriptionClient {
     const prompt = this.buildPrompt(route);
 
     try {
-      // Use copilot CLI in programmatic mode
-      const command = `copilot -p "${this.escapePrompt(prompt)}"`;
+      // Use copilot CLI in programmatic mode with --allow-all-tools for non-interactive use
+      // --deny-tool write prevents file creation and returns code as stdout
+      const command = `copilot -p "${this.escapePrompt(prompt)}" --allow-all-tools --deny-tool write`;
 
       const { stdout } = await execAsync(command, {
         maxBuffer: 1024 * 1024 * 10, // 10MB
@@ -47,8 +48,9 @@ export class CopilotSubscriptionClient {
     await this.checkCopilotCLI();
 
     try {
-      // Test with a simple prompt
-      const command = `copilot -p "hello"`;
+      // Test with a simple prompt using --allow-all-tools for non-interactive mode
+      // --deny-tool write prevents file creation
+      const command = `copilot -p "hello" --allow-all-tools --deny-tool write`;
 
       const { stdout, stderr } = await execAsync(command, {
         timeout: 15000, // 15 seconds

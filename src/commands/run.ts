@@ -3,6 +3,7 @@ import { TestCache } from '../test-cache';
 import { Logger } from '../utils/logger';
 import { TestRunner } from '../runner';
 import { ReportGenerator } from '../reporter';
+import { initCommand } from './init';
 import * as path from 'path';
 
 /**
@@ -17,9 +18,10 @@ export async function runCommand() {
   const config = await ConfigManager.load();
 
   if (!config) {
-    Logger.error('No configuration found. Please run: lasTest init');
-    Logger.dim('This will create a .lastestrc.json file in the current directory.');
-    process.exit(1);
+    Logger.warn('No configuration found. Running initialization...');
+    Logger.newLine();
+    await initCommand({});
+    return;
   }
 
   Logger.success('Configuration loaded from .lastestrc.json');
@@ -30,9 +32,10 @@ export async function runCommand() {
   const tests = await TestCache.load();
 
   if (!tests || tests.length === 0) {
-    Logger.error('No cached tests found. Please run: lasTest init');
-    Logger.dim('This will scan your codebase and generate tests using AI.');
-    process.exit(1);
+    Logger.warn('No cached tests found. Running initialization...');
+    Logger.newLine();
+    await initCommand({});
+    return;
   }
 
   Logger.success(`Loaded ${tests.length} test cases from cache`);

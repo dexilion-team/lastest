@@ -115,6 +115,7 @@ Three files control behavior (all in current working directory):
 **Copilot Subscription Client:**
 - Uses `copilot` CLI command directly (shell exec)
 - Package: `@github/copilot` (NOT `@github/copilot-cli`)
+- Command: `copilot -p "prompt" --allow-all-tools` (requires `--allow-all-tools` for non-interactive mode)
 - Auth: `/login` command or `GITHUB_TOKEN` env var
 - Requires: Node.js 22+ and npm 10+
 
@@ -126,12 +127,28 @@ Three files control behavior (all in current working directory):
 5. Code saved to `lastest-results/tests/{route-name}.ts`
 6. TestCase objects stored in cache
 
-#### Verification & Retry Logic
-`init.ts` includes comprehensive verification:
-- Playwright auto-install on first run
-- AI setup verification via `testConnection()`
-- Config retry loop if verification fails
-- Existing config validation on reload
+#### Dependency Management & Auto-Installation
+`init.ts` includes automatic dependency verification and installation:
+- **Playwright**: Auto-installs on first run if missing
+- **AI CLIs**: Checks and offers installation based on selected provider:
+  - Claude CLI: Offers `npm install -g @anthropic-ai/claude-code`
+  - GitHub Copilot CLI: Offers `npm install -g @github/copilot`
+- Only installs dependencies needed for the selected AI provider
+- `ensureAIDependency()` runs before `verifyAISetup()` to ensure CLI is available
+
+#### Configuration Flow Improvements
+- **No config found**: `lastest` (run command) automatically triggers `lastest init`
+- **Existing config**: `lastest init` prepopulates all answers with existing values (no "update?" prompt)
+- **No cached tests**: Running `lastest` triggers full `init` pipeline
+- Authentication prompts removed (auto-checked via `ensureAIDependency()` and `verifyAISetup()`)
+
+#### Visual Diff Calculation
+`differ.ts` uses pixelmatch for screenshot comparison:
+- Calculates `diffPercentage = (numDiffPixels / totalPixels) * 100`
+- **Important**: `hasDifferences` threshold is `> 0.01%` (not `> 0`)
+  - Prevents false positives from sub-pixel anti-aliasing differences
+  - Identical-looking screens with minor rendering differences show as "No differences"
+- Diff images only generated when `hasDifferences === true`
 
 ## Module Structure
 
@@ -178,7 +195,7 @@ src/
 - `run.ts` controls fast re-run (cached tests only)
 - Both must maintain the same execution and reporting stages
 
-## New Features Implementation (2024)
+## Advanced Features
 
 ### Test Generation Modes
 
@@ -232,3 +249,30 @@ Setup flow in `init.ts`:
 - Added conditional prompts based on `testGenerationMode`
 - Template mode skips AI provider and custom instructions prompts
 - AI mode shows all configuration options
+
+## Common Development Patterns
+
+### Testing the CLI Locally
+
+```bash
+# Build and test
+npm run build
+node dist/cli.js init
+
+# Or use the binary directly
+./dist/cli.js init
+```
+
+### Adding New Configuration Options
+
+1. Add to `Config` interface in `types.ts`
+2. Add default value in `ConfigManager.getDefaultConfig()` (config.ts)
+3. Add inquirer prompt in `getConfigAnswers()` (init.ts)
+4. Use in relevant modules (generator, scanner, runner, etc.)
+
+### Debugging AI Client Issues
+
+- Check CLI installation: `claude --version` or `copilot --version`
+- Test authentication: `testConnection()` method in AI client
+- Enable verbose logging by adding console.log in `generateTest()`
+- For Copilot: Ensure `--allow-all-tools` flag is present in command

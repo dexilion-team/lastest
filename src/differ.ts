@@ -77,8 +77,9 @@ export class Differ {
           { threshold: this.threshold }
         );
 
-        const diffPercentage = (numDiffPixels / (width * height)) * 100;
-        const hasDifferences = diffPercentage > 0;
+        const totalPixels = width * height;
+        const diffPercentage = totalPixels > 0 ? (numDiffPixels / totalPixels) * 100 : 0;
+        const hasDifferences = diffPercentage > 0.01; // Ignore sub-0.01% differences
 
         let diffPath: string | undefined;
 
@@ -114,8 +115,9 @@ export class Differ {
         { threshold: this.threshold }
       );
 
-      const diffPercentage = (numDiffPixels / (width * height)) * 100;
-      const hasDifferences = diffPercentage > 0;
+      const totalPixels = width * height;
+      const diffPercentage = totalPixels > 0 ? (numDiffPixels / totalPixels) * 100 : 0;
+      const hasDifferences = diffPercentage > 0.01; // Ignore sub-0.01% differences
 
       let diffPath: string | undefined;
 
