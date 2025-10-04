@@ -74,7 +74,7 @@ export class TestGenerator {
           routerType: route.routerType,
         });
       } catch (error) {
-        Logger.error(`Failed to generate test for ${route.path}: ${(error as Error).message}`);
+        Logger.captureError(error as Error, `Failed to generate test for ${route.path}`);
       }
     }
 

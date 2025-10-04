@@ -105,6 +105,7 @@ export class TestRunner {
         await context.close();
 
         const duration = Date.now() - startTime;
+        Logger.captureError(error as Error, `Test execution failed for ${test.route} (${environment})`);
 
         return {
           route: test.route,
@@ -118,6 +119,7 @@ export class TestRunner {
       }
     } catch (error) {
       const duration = Date.now() - startTime;
+      Logger.captureError(error as Error, `Test setup failed for ${test.route} (${environment})`);
 
       return {
         route: test.route,

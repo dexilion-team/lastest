@@ -1,6 +1,7 @@
 import { RouteInfo, Config } from '../types';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { Logger } from '../utils/logger';
 
 const execAsync = promisify(exec);
 
@@ -31,15 +32,48 @@ export class CopilotSubscriptionClient {
         timeout: 60000, // 60 seconds
       });
 
-      return this.extractCode(stdout);
+      // Validate response
+      if (!stdout || stdout.trim().length === 0) {
+        const err = new Error('GitHub Copilot returned an empty response');
+        Logger.captureError(err, 'Copilot test generation - empty response');
+        throw err;
+      }
+
+      const code = this.extractCode(stdout);
+
+      // Validate extracted code
+      if (!code || code.trim().length === 0) {
+        const err = new Error('GitHub Copilot response did not contain valid TypeScript code');
+        Logger.captureError(err, 'Copilot test generation - no code extracted');
+        throw err;
+      }
+
+      // Basic validation: check if it looks like TypeScript
+      if (!code.includes('export') && !code.includes('function')) {
+        const err = new Error('GitHub Copilot response does not appear to contain a valid test function');
+        Logger.captureError(err, 'Copilot test generation - invalid code format');
+        throw err;
+      }
+
+      return code;
     } catch (error) {
-      throw new Error(
+      // If error is already captured (from validation above), re-throw it
+      if ((error as Error).message.includes('GitHub Copilot returned an empty response') ||
+          (error as Error).message.includes('did not contain valid TypeScript code') ||
+          (error as Error).message.includes('does not appear to contain a valid test function')) {
+        throw error;
+      }
+
+      // Otherwise, wrap and capture the error
+      const err = new Error(
         `GitHub Copilot error: ${(error as Error).message}\n` +
           `Make sure you've:\n` +
           `1. Installed: npm install -g @github/copilot\n` +
           `2. Authenticated: Run 'copilot' and use /login command, or set GITHUB_TOKEN\n` +
           `3. Have an active Copilot subscription (Pro/Business/Enterprise)`
       );
+      Logger.captureError(err, 'Copilot test generation');
+      throw err;
     }
   }
 
@@ -63,17 +97,21 @@ export class CopilotSubscriptionClient {
       }
     } catch (error) {
       const errorMsg = (error as Error).message;
+      let err: Error;
       if (errorMsg.includes('not authenticated') || errorMsg.includes('login')) {
-        throw new Error(
+        err = new Error(
           `GitHub Copilot not authenticated. Please authenticate:\n` +
             `  Option 1: Run 'copilot' and use /login command\n` +
             `  Option 2: Set GITHUB_TOKEN environment variable`
         );
+      } else {
+        err = new Error(
+          `GitHub Copilot connection failed: ${errorMsg}\n` +
+            `Make sure you have an active Copilot subscription (Pro/Business/Enterprise)`
+        );
       }
-      throw new Error(
-        `GitHub Copilot connection failed: ${errorMsg}\n` +
-          `Make sure you have an active Copilot subscription (Pro/Business/Enterprise)`
-      );
+      Logger.captureError(err, 'Copilot connection test');
+      throw err;
     }
   }
 

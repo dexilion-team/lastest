@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { ErrorLogger } from './error-logger';
 
 export class Logger {
   static info(message: string) {
@@ -44,5 +45,13 @@ export class Logger {
 
   static newLine() {
     console.log('');
+  }
+
+  /**
+   * Capture and log an error with context
+   */
+  static captureError(error: Error, context?: string) {
+    ErrorLogger.captureError(error, context);
+    this.error(`${context ? context + ': ' : ''}${error.message}`);
   }
 }

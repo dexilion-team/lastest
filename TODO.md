@@ -2,5 +2,3 @@
 - ✓ Custom instructions for AI test generation (completed)
 - ✓ Documentation cleanup (completed)
 - hashrouter support?
-- log errors, promp user to send logs as bugs to us
-- work in email somehow?

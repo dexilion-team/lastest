@@ -2,6 +2,7 @@ import { RouteInfo, Config } from '../types';
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { Logger } from '../utils/logger';
 
 const execAsync = promisify(exec);
 
@@ -37,12 +38,45 @@ export class ClaudeSubscriptionClient {
         }
       }
 
-      return this.extractCode(responseText);
+      // Validate response
+      if (!responseText || responseText.trim().length === 0) {
+        const err = new Error('Claude returned an empty response');
+        Logger.captureError(err, 'Claude test generation - empty response');
+        throw err;
+      }
+
+      const code = this.extractCode(responseText);
+
+      // Validate extracted code
+      if (!code || code.trim().length === 0) {
+        const err = new Error('Claude response did not contain valid TypeScript code');
+        Logger.captureError(err, 'Claude test generation - no code extracted');
+        throw err;
+      }
+
+      // Basic validation: check if it looks like TypeScript
+      if (!code.includes('export') && !code.includes('function')) {
+        const err = new Error('Claude response does not appear to contain a valid test function');
+        Logger.captureError(err, 'Claude test generation - invalid code format');
+        throw err;
+      }
+
+      return code;
     } catch (error) {
-      throw new Error(
+      // If error is already captured (from validation above), re-throw it
+      if ((error as Error).message.includes('Claude returned an empty response') ||
+          (error as Error).message.includes('did not contain valid TypeScript code') ||
+          (error as Error).message.includes('does not appear to contain a valid test function')) {
+        throw error;
+      }
+
+      // Otherwise, wrap and capture the error
+      const err = new Error(
         `Claude subscription error: ${(error as Error).message}\n` +
           `Make sure you've run: npm install -g @anthropic-ai/claude-code && claude login`
       );
+      Logger.captureError(err, 'Claude test generation');
+      throw err;
     }
   }
 
@@ -65,10 +99,12 @@ export class ClaudeSubscriptionClient {
         throw new Error('No response from Claude Agent SDK');
       }
     } catch (error) {
-      throw new Error(
+      const err = new Error(
         `Claude subscription not authenticated. Please run: claude login\n` +
           `Error: ${(error as Error).message}`
       );
+      Logger.captureError(err, 'Claude connection test');
+      throw err;
     }
   }
 

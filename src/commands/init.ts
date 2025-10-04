@@ -5,6 +5,7 @@ import { promisify } from 'util';
 import { ConfigManager } from '../config';
 import { TestCache } from '../test-cache';
 import { Logger } from '../utils/logger';
+import { ErrorLogger } from '../utils/error-logger';
 import { Scanner } from '../scanner';
 import { TestGenerator } from '../generator';
 import { TestRunner } from '../runner';
@@ -60,6 +61,9 @@ export async function initCommand(options: InitOptions) {
     Logger.newLine();
     Logger.success('Configuration saved to .lastestrc.json');
   }
+
+  // Set config for error logging
+  ErrorLogger.setConfig(config);
 
   // Step 1: Scan codebase for routes
   Logger.newLine();
@@ -122,7 +126,7 @@ async function verifyAISetup(config: Config): Promise<boolean> {
     }
     return true;
   } catch (error) {
-    Logger.error((error as Error).message);
+    Logger.captureError(error as Error, 'AI setup verification');
     return false;
   }
 }
@@ -345,7 +349,7 @@ async function promptForConfig(options: InitOptions, existingConfig?: Config): P
     try {
       await ensureAIDependency(config);
     } catch (error) {
-      Logger.error((error as Error).message);
+      Logger.captureError(error as Error, 'AI dependency check');
       Logger.newLine();
       const { retry } = await inquirer.prompt([
         {

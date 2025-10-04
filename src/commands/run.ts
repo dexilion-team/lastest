@@ -1,6 +1,7 @@
 import { ConfigManager } from '../config';
 import { TestCache } from '../test-cache';
 import { Logger } from '../utils/logger';
+import { ErrorLogger } from '../utils/error-logger';
 import { TestRunner } from '../runner';
 import { ReportGenerator } from '../reporter';
 import { initCommand } from './init';
@@ -25,6 +26,9 @@ export async function runCommand() {
   }
 
   Logger.success('Configuration loaded from .lastestrc.json');
+
+  // Set config for error logging
+  ErrorLogger.setConfig(config);
 
   // Load cached tests
   Logger.newLine();
