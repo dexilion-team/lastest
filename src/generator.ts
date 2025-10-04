@@ -83,8 +83,14 @@ export class TestGenerator {
 
   private getTestName(routePath: string): string {
     // Convert route path to valid filename
+    // Handle root path specially
+    if (routePath === '/') {
+      return 'home';
+    }
+
+    // Strip leading slash and convert to filename
     return routePath
-      .replace(/^\//, 'home')
+      .replace(/^\//, '')
       .replace(/\//g, '-')
       .replace(/[^a-zA-Z0-9-]/g, '')
       .toLowerCase() || 'index';

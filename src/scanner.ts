@@ -281,11 +281,17 @@ Return a JSON array of route objects with this exact format:
 [
   {
     "path": "/route-path",
-    "type": "static" | "dynamic",
+    "type": "static",
     "filePath": "optional-file-path",
-    "routerType": "hash" | "browser" | undefined
+    "routerType": "hash"
   }
 ]
+
+Field specifications:
+- "path": string - The route path (e.g., "/", "/about", "/users/:id")
+- "type": Must be exactly "static" OR "dynamic" (dynamic if path contains parameters like :id, [id], etc.)
+- "filePath": string (optional) - Relative file path if known
+- "routerType": string (optional) - Must be exactly "hash" OR "browser" if detected. OMIT this field entirely if unknown.
 
 Files to analyze:
 ${filesContext}
@@ -294,8 +300,9 @@ IMPORTANT:
 - Look for Next.js page files, React Router routes, Vue Router routes, etc.
 - Identify static routes (exact paths) vs dynamic routes (with parameters)
 - Detect if HashRouter or BrowserRouter is used
-- Return ONLY valid JSON array, no explanations
-- Skip API routes or server-only routes`;
+- Return ONLY valid JSON array, no explanations or markdown
+- Skip API routes or server-only routes
+- For unknown routerType, DO NOT include the field at all (do not use null or undefined)`;
 
       let responseText = '';
 
@@ -310,15 +317,50 @@ IMPORTANT:
         }
       }
 
-      // Extract JSON from response
-      const jsonMatch = responseText.match(/\[[\s\S]*?\]/);
-      if (!jsonMatch) {
+      // Extract JSON from response (try multiple strategies)
+      let jsonString: string | null = null;
+
+      // Strategy 1: Look for JSON in markdown code blocks
+      const codeBlockMatch = responseText.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
+      if (codeBlockMatch) {
+        jsonString = codeBlockMatch[1];
+      }
+
+      // Strategy 2: Look for raw JSON array
+      if (!jsonString) {
+        const rawJsonMatch = responseText.match(/\[[\s\S]*\]/);
+        if (rawJsonMatch) {
+          jsonString = rawJsonMatch[0];
+        }
+      }
+
+      if (!jsonString) {
         Logger.warn('AI did not return valid JSON, falling back to traditional scanning');
         return await this.scanTraditional();
       }
 
-      const routes: RouteInfo[] = JSON.parse(jsonMatch[0]);
-      return routes;
+      // Parse and validate JSON
+      try {
+        const parsed = JSON.parse(jsonString);
+
+        if (!Array.isArray(parsed)) {
+          throw new Error('Response is not an array');
+        }
+
+        // Validate and filter routes
+        const routes: RouteInfo[] = this.validateRoutes(parsed);
+
+        if (routes.length === 0) {
+          Logger.warn('No valid routes found in AI response, falling back to traditional scanning');
+          return await this.scanTraditional();
+        }
+
+        return routes;
+      } catch (error) {
+        Logger.error(`Failed to parse AI response: ${(error as Error).message}`);
+        Logger.warn('Falling back to traditional route scanning...');
+        return await this.scanTraditional();
+      }
     } catch (error) {
       Logger.error(`AI route detection failed: ${(error as Error).message}`);
       Logger.warn('Falling back to traditional route scanning...');
@@ -395,5 +437,48 @@ ${content.slice(0, 2000)} // Limit each file to 2000 chars
     }
 
     return contexts.join('\n---\n');
+  }
+
+  private validateRoutes(parsed: any[]): RouteInfo[] {
+    const validRoutes: RouteInfo[] = [];
+
+    for (const item of parsed) {
+      // Validate required fields
+      if (!item.path || typeof item.path !== 'string') {
+        Logger.warn(`Skipping invalid route: missing or invalid 'path' field`);
+        continue;
+      }
+
+      if (!item.type || (item.type !== 'static' && item.type !== 'dynamic')) {
+        Logger.warn(`Skipping route ${item.path}: invalid 'type' field (must be 'static' or 'dynamic')`);
+        continue;
+      }
+
+      // Validate optional fields
+      const route: RouteInfo = {
+        path: item.path,
+        type: item.type,
+      };
+
+      if (item.filePath && typeof item.filePath === 'string') {
+        route.filePath = item.filePath;
+      }
+
+      if (item.component && typeof item.component === 'string') {
+        route.component = item.component;
+      }
+
+      if (item.routerType) {
+        if (item.routerType === 'hash' || item.routerType === 'browser') {
+          route.routerType = item.routerType;
+        } else {
+          Logger.warn(`Route ${item.path}: invalid routerType '${item.routerType}', omitting field`);
+        }
+      }
+
+      validRoutes.push(route);
+    }
+
+    return validRoutes;
   }
 }

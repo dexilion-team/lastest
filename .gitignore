@@ -13,6 +13,7 @@ lastest-results/
 test-results/
 playwright-report/
 coverage/
+tests/.test-output/
 
 # Environment variables
 .env
