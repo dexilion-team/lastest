@@ -1,15 +1,34 @@
-# 🚀 lasTest
+# lasTest konzol
 
-> AI-powered automated visual testing CLI that compares live vs dev environments
+> AI-powered automated visual testing CLI that compares live vs dev environments mostly for vibe-coders.
 
-[![CI](https://github.com/yourusername/lastest/workflows/CI/badge.svg)](https://github.com/yourusername/lastest/actions)
+[![CI](https://github.com/ewyct/lastest/workflows/CI/badge.svg)](https://github.com/ewyct/lastest/actions)
 [![npm version](https://badge.fury.io/js/lastest.svg)](https://www.npmjs.com/package/lastest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**lasTest** automatically scans your codebase, generates Playwright tests using AI, and runs visual regression tests comparing your live and development environments. Get comprehensive reports with side-by-side screenshots and visual diffs.
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║   /\_/\           █████████████████████████████████████████████████████╗  ║
+║  ( o.o )          ╚════════════════════════██╔═════════════════════════╝  ║
+║   > ^ <   |\_/|   ██╗      █████╗ ███████╗ ██║ ███████╗███████╗████████╗  ║
+║  /|   |\ ( o.o )  ██║     ██╔══██╗██╔════╝ ██║ ██╔════╝██╔════╝╚══██╔══╝  ║
+║ (_|   |_) > ^ <   ██║     ███████║███████╗ ██║ █████╗  ███████╗   ██║     ║
+║    | |   /     \  ██║     ██╔══██║╚════██║ ██║ ██╔══╝  ╚════██║   ██║     ║
+║    |_|  /_______\ ███████╗██║  ██║███████║ ██║ ███████╗███████║   ██║     ║
+║                   ╚══════╝╚═╝  ╚═╝╚══════╝ ╚═╝ ╚══════╝╚══════╝   ╚═╝     ║
+║                                                                           ║
+║                                                 Automated Visual Testing  ║
+║                                                         made by Dexilion  ║
+║                                                             dexilion.com  ║
+║                                                                   v0.1.2  ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+```
+
+Automatically scans your codebase, generates Playwright tests using AI, and runs visual regression tests comparing your live and development environments. Get comprehensive reports with side-by-side screenshots and visual diffs. Perfect for vibe-coding.
 
 ## ✨ Features
 
+- ⏱️ **30s Frontend PR Testing** - Complete visual regression testing from install to report in under 30 seconds
 - 🤖 **AI-Powered Test Generation** - Uses Claude Pro/Max or GitHub Copilot subscription to generate intelligent tests
 - 📝 **Template Mode** - Skip AI entirely for simple screenshot tests (faster, no AI costs)
 - 🔍 **Smart Route Detection** - Automatically discovers pages from Next.js, React Router, Vue Router, and more
@@ -21,7 +40,7 @@
 - ⚡ **Parallel Execution** - Run tests concurrently for blazing-fast results
 - 🔧 **Highly Configurable** - Customize everything via `.lastestrc.json`
 - 💾 **Test Caching** - Generated tests are cached for fast re-runs without AI calls
-- 📊 **Error Tracking** - Comprehensive error logging with email notifications support
+- 📊 **Error Tracking** - Comprehensive error logging with optional email notifications support
 
 ## 🚀 Quick Start
 
@@ -448,16 +467,6 @@ export ANTHROPIC_API_KEY=your-key
 
 **Status**: This is a bug in the `@github/copilot` CLI package, not lasTest. The CLI should not require TypeScript to be globally installed when only generating code responses.
 
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ## 📝 License
 
 MIT © [lastest contributors](LICENSE)
@@ -476,4 +485,4 @@ MIT © [lastest contributors](LICENSE)
 
 ---
 
-Made with ❤️ by the open-source community
+Made with ❤️ for the open-source community
