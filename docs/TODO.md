@@ -1,14 +1,11 @@
-- hashrouter support?
 
 Marketing
-- discord noti for signup
 - lastest product page
 - 30 sec video
 - custom instructions video
 
 
 APP
-- error reporting prompt when there are errors
 - npm publish
 - Playwright mcp integration
 - Entire prompt as config

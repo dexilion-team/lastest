@@ -60,7 +60,7 @@ export class TemplateGenerator {
 export async function test(page: Page, baseUrl: string, screenshotPath: string) {
   try {
     // Navigate to the route
-    const url = baseUrl + '${route.path}';
+    const url = ${route.routerType === 'hash' ? `baseUrl + '/#' + '${route.path}'` : `baseUrl + '${route.path}'`};
     await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
 
     // Wait for page to be fully loaded
