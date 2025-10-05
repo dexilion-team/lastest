@@ -29,7 +29,7 @@ export class ConfigManager {
         width: 1920,
         height: 1080,
       },
-      diffThreshold: 0.1,
+      diffThreshold: 1,
       parallel: true,
       maxConcurrency: 5,
     };

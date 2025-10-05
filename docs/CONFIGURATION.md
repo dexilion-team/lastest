@@ -246,17 +246,17 @@ Browser viewport dimensions in pixels.
 
 **Type:** `number`
 **Required:** No
-**Default:** `0.1`
+**Default:** `1`
 **Range:** `0.0` - `1.0`
 
 Pixel difference threshold for visual comparison.
 
 **Guidelines:**
 - `0.0` - Exact match (very strict, may have false positives)
-- `0.1` - Small differences (recommended default)
-- `0.2` - Moderate tolerance
-- `0.3` - High tolerance (for dynamic content)
-- `0.5` - Very high tolerance
+- `0.5` - Small differences
+- `1.0` - Moderate tolerance (recommended default)
+- `2.0` - High tolerance (for dynamic content)
+- `5.0` - Very high tolerance
 
 **Example:**
 ```json

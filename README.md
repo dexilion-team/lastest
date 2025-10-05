@@ -129,7 +129,7 @@ The `.lastestrc.json` file is automatically created during `init`:
     "width": 1920,
     "height": 1080
   },
-  "diffThreshold": 0.1,
+  "diffThreshold": 1,
   "parallel": true,
   "maxConcurrency": 5
 }
@@ -254,12 +254,14 @@ The HTML report includes a **tabbed interface** with three views:
 - Per-route test status
 - Test execution metrics
 
-### 🎭 Playwright Report Tab
-- Standard Playwright test report format
-- Detailed step-by-step execution logs
-- Test timing and performance metrics
+### 📊 Step-by-Step Comparison Tab
+- Side-by-side comparison of live vs dev environments
+- Route-based grouping with parallel execution logs
+- Step-by-step execution details for both environments
+- Test timing and performance metrics per environment
 - Error stack traces and debugging info
 - Visual step indicators (✓ passed, ✗ failed)
+- Screenshot links for each environment
 
 ## 🔧 Configuration Options
 
@@ -274,7 +276,7 @@ The HTML report includes a **tabbed interface** with three views:
 | `scanPath` | `string` | `'.'` | Path to scan for routes |
 | `outputDir` | `string` | `'lastest-results'` | Output directory for results |
 | `viewport` | `object` | `{width: 1920, height: 1080}` | Browser viewport size |
-| `diffThreshold` | `number` | `0.1` | Pixel difference threshold (0-1) |
+| `diffThreshold` | `number` | `1` | Pixel difference threshold (0-1) |
 | `parallel` | `boolean` | `true` | Run tests in parallel |
 | `maxConcurrency` | `number` | `5` | Max parallel test executions |
 

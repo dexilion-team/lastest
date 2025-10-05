@@ -7,7 +7,7 @@ import { PlaywrightReporter } from './playwright-reporter';
 export class ReportGenerator {
   constructor(private config: Config) {}
 
-  async generate(results: TestResult[]): Promise<string> {
+  async generate(results: TestResult[]): Promise<{ reportPath: string; report: Report }> {
     const startTime = Date.now();
 
     // Separate live and dev results
@@ -59,7 +59,7 @@ export class ReportGenerator {
     // Save raw data
     await this.saveRawData(report);
 
-    return htmlPath;
+    return { reportPath: htmlPath, report };
   }
 
   private async generateHtmlReport(report: Report): Promise<string> {
@@ -614,7 +614,7 @@ export class ReportGenerator {
     <div class="tabs">
       <div class="tab active" data-tab="comparison">Visual Comparison</div>
       <div class="tab" data-tab="test-results">Test Results</div>
-      <div class="tab" data-tab="playwright">Playwright Report</div>
+      <div class="tab" data-tab="playwright">Step-by-Step Comparison</div>
     </div>
 
     <div class="tab-content active" id="comparison">

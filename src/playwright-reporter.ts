@@ -65,106 +65,68 @@ export class PlaywrightReporter {
     const reportDir = path.join(this.outputDir, 'playwright-report');
     await fs.ensureDir(reportDir);
 
-    // Group results by environment
-    const liveResults = results.filter(r => r.environment === 'live');
-    const devResults = results.filter(r => r.environment === 'dev');
+    // Group results by route for side-by-side comparison
+    const routeGroups = this.groupResultsByRoute(results);
 
-    // Create Playwright-compatible report structure
-    const report: PlaywrightReport = {
-      config: {
-        rootDir: process.cwd(),
-        workers: 1,
-      },
-      suites: [
-        this.createSuite('Live Environment', liveResults, liveUrl),
-        this.createSuite('Dev Environment', devResults, devUrl),
-      ],
-      stats: this.calculateStats(results),
-    };
-
-    // Write report.json
-    const reportPath = path.join(reportDir, 'report.json');
-    await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
-
-    // Generate HTML from JSON using Playwright's reporter
-    await this.generateHtml(reportDir, reportPath);
+    // Generate HTML with live/dev comparison
+    await this.generateHtml(reportDir, routeGroups, liveUrl, devUrl, results);
 
     return reportDir;
   }
 
-  private createSuite(title: string, results: TestResult[], baseUrl: string): PlaywrightSuite {
-    return {
-      title,
-      file: '',
-      line: 0,
-      column: 0,
-      suites: [],
-      tests: results.map(result => this.convertToPlaywrightTest(result, baseUrl)),
-    };
+  private groupResultsByRoute(results: TestResult[]): Map<string, { live?: TestResult; dev?: TestResult }> {
+    const routeGroups = new Map<string, { live?: TestResult; dev?: TestResult }>();
+
+    for (const result of results) {
+      if (!routeGroups.has(result.route)) {
+        routeGroups.set(result.route, {});
+      }
+      const group = routeGroups.get(result.route)!;
+      if (result.environment === 'live') {
+        group.live = result;
+      } else {
+        group.dev = result;
+      }
+    }
+
+    return routeGroups;
   }
 
-  private convertToPlaywrightTest(result: TestResult, baseUrl: string): PlaywrightTestResult {
-    const testTitle = `${result.route} - ${baseUrl}`;
-
-    // Convert absolute screenshot path to relative path from playwright-report directory
-    const screenshotRelativePath = path.relative(
-      path.join(this.outputDir, 'playwright-report'),
-      result.screenshot
-    );
-
-    return {
-      title: testTitle,
-      file: result.detailedResults?.testName || result.route,
-      line: 0,
-      column: 0,
-      status: result.passed ? 'passed' : 'failed',
-      duration: result.duration,
-      retry: result.detailedResults?.retries || 0,
-      errors: result.error ? [{
-        message: result.error,
-        stack: result.detailedResults?.error?.stack,
-      }] : [],
-      attachments: [{
-        name: 'screenshot',
-        path: screenshotRelativePath,
-        contentType: 'image/png',
-      }],
-      steps: result.detailedResults?.steps || [],
-    };
-  }
-
-  private calculateStats(results: TestResult[]) {
-    const passed = results.filter(r => r.passed).length;
-    const failed = results.filter(r => !r.passed).length;
-    const startTime = new Date().toISOString();
-    const totalDuration = results.reduce((sum, r) => sum + r.duration, 0);
-
-    return {
-      startTime,
-      duration: totalDuration,
-      expected: passed,
-      unexpected: failed,
-      flaky: 0,
-      skipped: 0,
-    };
-  }
-
-  private async generateHtml(reportDir: string, jsonPath: string): Promise<void> {
-    // Read the JSON data to embed it directly in the HTML
-    const jsonData = await fs.readFile(jsonPath, 'utf-8');
-    const html = this.buildHtmlViewer(jsonData);
+  private async generateHtml(
+    reportDir: string,
+    routeGroups: Map<string, { live?: TestResult; dev?: TestResult }>,
+    liveUrl: string,
+    devUrl: string,
+    allResults: TestResult[]
+  ): Promise<void> {
+    const html = this.buildHtmlViewer(routeGroups, liveUrl, devUrl, allResults);
     const htmlPath = path.join(reportDir, 'index.html');
     await fs.writeFile(htmlPath, html);
   }
 
-  private buildHtmlViewer(jsonData: string): string {
+  private buildHtmlViewer(
+    routeGroups: Map<string, { live?: TestResult; dev?: TestResult }>,
+    liveUrl: string,
+    devUrl: string,
+    allResults: TestResult[]
+  ): string {
+    const timestamp = new Date().toISOString();
+    const totalDuration = allResults.reduce((sum, r) => sum + r.duration, 0);
+
+    // Convert route groups to JSON for embedding
+    const routeData = Array.from(routeGroups.entries()).map(([route, { live, dev }]) => ({
+      route,
+      live: live ? this.convertResultToJson(live) : null,
+      dev: dev ? this.convertResultToJson(dev) : null,
+    }));
+
     return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Playwright Test Report</title>
+  <title>Step-by-Step Comparison</title>
   <style>
     * {
       margin: 0;
@@ -179,7 +141,7 @@ export class PlaywrightReporter {
     }
 
     .container {
-      max-width: 1200px;
+      max-width: 1600px;
       margin: 0 auto;
       background: white;
       border-radius: 8px;
@@ -203,84 +165,80 @@ export class PlaywrightReporter {
       font-size: 14px;
     }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 20px;
-      padding: 30px;
-      border-bottom: 1px solid #e0e0e0;
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
     }
 
-    .stat {
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 32px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: #666;
-      margin-top: 5px;
-    }
-
-    .stat.passed .stat-value {
-      color: #10b981;
-    }
-
-    .stat.failed .stat-value {
-      color: #ef4444;
-    }
-
-    .suite {
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    .suite-header {
+    .comparison-table th {
       background: #f9fafb;
-      padding: 20px 30px;
+      padding: 15px;
+      text-align: left;
+      border-bottom: 2px solid #e0e0e0;
       font-weight: 600;
-      font-size: 18px;
       color: #374151;
     }
 
-    .test-list {
-      padding: 0;
-    }
-
-    .test-item {
-      padding: 20px 30px;
+    .comparison-table td {
+      padding: 20px 15px;
       border-bottom: 1px solid #e0e0e0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      vertical-align: top;
     }
 
-    .test-item:last-child {
-      border-bottom: none;
+    .route-name {
+      font-family: monospace;
+      font-size: 14px;
+      color: #374151;
+      font-weight: 600;
+      width: 200px;
     }
 
-    .test-item.passed {
+    .env-column {
+      width: 45%;
+    }
+
+    .env-result {
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .env-result.passed {
       background: #f0fdf4;
     }
 
-    .test-item.failed {
+    .env-result.failed {
       background: #fef2f2;
     }
 
-    .test-title {
-      flex: 1;
+    .env-result.missing {
+      background: #f3f4f6;
+      color: #6b7280;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
       font-size: 14px;
     }
 
-    .test-status {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
+    .status-badge.passed {
+      color: #166534;
+    }
+
+    .status-badge.failed {
+      color: #991b1b;
     }
 
     .status-icon {
@@ -290,8 +248,8 @@ export class PlaywrightReporter {
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
       font-size: 12px;
+      font-weight: bold;
     }
 
     .status-icon.passed {
@@ -309,57 +267,28 @@ export class PlaywrightReporter {
       font-size: 13px;
     }
 
-    .error-details {
-      margin-top: 10px;
-      padding: 15px;
-      background: #fee;
-      border-left: 4px solid #ef4444;
-      font-family: monospace;
-      font-size: 12px;
-      white-space: pre-wrap;
-      color: #991b1b;
-    }
-
-    .screenshot-link {
-      margin-top: 10px;
-    }
-
-    .screenshot-link a {
-      color: #3b82f6;
-      text-decoration: none;
-      font-size: 13px;
-    }
-
-    .screenshot-link a:hover {
-      text-decoration: underline;
-    }
-
     .test-steps {
-      margin-top: 15px;
-      padding: 12px;
-      background: #f9fafb;
-      border-radius: 6px;
-      border: 1px solid #e5e7eb;
+      margin-top: 10px;
     }
 
     .steps-header {
       font-weight: 600;
-      font-size: 12px;
+      font-size: 11px;
       color: #6b7280;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .step-item {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 10px;
-      margin: 4px 0;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 10px;
+      margin: 3px 0;
       background: white;
       border-radius: 4px;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .step-item.passed {
@@ -372,15 +301,16 @@ export class PlaywrightReporter {
     }
 
     .step-icon {
-      width: 16px;
-      height: 16px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 9px;
       font-weight: bold;
       flex-shrink: 0;
+      margin-top: 2px;
     }
 
     .step-item.passed .step-icon {
@@ -393,26 +323,56 @@ export class PlaywrightReporter {
       color: white;
     }
 
-    .step-title {
+    .step-content {
       flex: 1;
+    }
+
+    .step-title {
       color: #374151;
+      line-height: 1.4;
     }
 
     .step-duration {
       color: #9ca3af;
-      font-size: 11px;
+      font-size: 10px;
+      margin-left: auto;
       flex-shrink: 0;
+      padding-left: 8px;
     }
 
     .step-error {
-      width: 100%;
-      margin-top: 6px;
-      padding: 8px;
+      margin-top: 4px;
+      padding: 6px 8px;
       background: #fee;
       border-radius: 3px;
       font-size: 11px;
       color: #991b1b;
       font-family: monospace;
+    }
+
+    .error-details {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fee;
+      border-left: 3px solid #ef4444;
+      font-family: monospace;
+      font-size: 11px;
+      color: #991b1b;
+      border-radius: 3px;
+    }
+
+    .screenshot-link {
+      margin-top: 10px;
+    }
+
+    .screenshot-link a {
+      color: #3b82f6;
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .screenshot-link a:hover {
+      text-decoration: underline;
     }
 
     footer {
@@ -424,118 +384,131 @@ export class PlaywrightReporter {
   </style>
 </head>
 <body>
-  <div class="container" id="app">
+  <div class="container">
     <header>
-      <h1>🎭 Playwright Test Report</h1>
-      <div class="meta">Loading test results...</div>
+      <h1>📊 Step-by-Step Comparison</h1>
+      <div class="meta">
+        Generated: ${new Date(timestamp).toLocaleString()} |
+        Duration: ${(totalDuration / 1000).toFixed(2)}s
+      </div>
     </header>
-    <div id="content"></div>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th class="route-name">Route</th>
+          <th class="env-column">Live Environment</th>
+          <th class="env-column">Dev Environment</th>
+        </tr>
+      </thead>
+      <tbody id="results-body">
+      </tbody>
+    </table>
+
     <footer>Generated by lasTest</footer>
   </div>
 
   <script>
-    // Embed report data directly to avoid CORS issues
-    const REPORT_DATA = ${jsonData};
+    const ROUTE_DATA = ${JSON.stringify(routeData)};
 
-    function loadReport() {
-      try {
-        renderReport(REPORT_DATA);
-      } catch (error) {
-        document.getElementById('content').innerHTML =
-          '<div style="padding: 30px; color: #ef4444;">Error loading report: ' + error.message + '</div>';
+    function renderResults() {
+      const tbody = document.getElementById('results-body');
+
+      ROUTE_DATA.forEach(({ route, live, dev }) => {
+        const row = document.createElement('tr');
+
+        // Route column
+        const routeCell = document.createElement('td');
+        routeCell.className = 'route-name';
+        routeCell.textContent = route;
+        row.appendChild(routeCell);
+
+        // Live environment column
+        const liveCell = document.createElement('td');
+        liveCell.className = 'env-column';
+        liveCell.innerHTML = renderEnvironmentResult(live, '${liveUrl}');
+        row.appendChild(liveCell);
+
+        // Dev environment column
+        const devCell = document.createElement('td');
+        devCell.className = 'env-column';
+        devCell.innerHTML = renderEnvironmentResult(dev, '${devUrl}');
+        row.appendChild(devCell);
+
+        tbody.appendChild(row);
+      });
+    }
+
+    function renderEnvironmentResult(result, baseUrl) {
+      if (!result) {
+        return '<div class="env-result missing">No data</div>';
       }
-    }
 
-    function renderReport(data) {
-      const meta = document.querySelector('.meta');
-      meta.textContent = 'Generated: ' + new Date(data.stats.startTime).toLocaleString() +
-                         ' | Duration: ' + (data.stats.duration / 1000).toFixed(2) + 's';
+      const statusClass = result.passed ? 'passed' : 'failed';
+      const statusIcon = result.passed ? '✓' : '✗';
 
-      const statsHtml = \`
-        <div class="stats">
-          <div class="stat">
-            <div class="stat-value">\${data.stats.expected + data.stats.unexpected}</div>
-            <div class="stat-label">Total Tests</div>
-          </div>
-          <div class="stat passed">
-            <div class="stat-value">\${data.stats.expected}</div>
-            <div class="stat-label">Passed</div>
-          </div>
-          <div class="stat failed">
-            <div class="stat-value">\${data.stats.unexpected}</div>
-            <div class="stat-label">Failed</div>
-          </div>
-          <div class="stat">
-            <div class="stat-value">\${data.stats.skipped}</div>
-            <div class="stat-label">Skipped</div>
-          </div>
-        </div>
-      \`;
+      const stepsHtml = result.steps && result.steps.length > 0 ?
+        \`<div class="test-steps">
+          <div class="steps-header">Steps:</div>
+          \${result.steps.map(step => {
+            const stepStatus = step.error ? 'failed' : 'passed';
+            const stepIcon = step.error ? '✗' : '✓';
+            return \`
+              <div class="step-item \${stepStatus}">
+                <span class="step-icon">\${stepIcon}</span>
+                <div class="step-content">
+                  <div style="display: flex; align-items: center;">
+                    <span class="step-title">\${step.title}</span>
+                    <span class="step-duration">\${(step.duration / 1000).toFixed(2)}s</span>
+                  </div>
+                  \${step.error ? '<div class="step-error">' + step.error + '</div>' : ''}
+                </div>
+              </div>
+            \`;
+          }).join('')}
+        </div>\` : '';
 
-      const suitesHtml = data.suites.map(suite => renderSuite(suite)).join('');
+      const errorHtml = result.error ?
+        '<div class="error-details">' + result.error + '</div>' : '';
 
-      document.getElementById('content').innerHTML = statsHtml + suitesHtml;
-    }
-
-    function renderSuite(suite) {
-      const testsHtml = suite.tests.map(test => renderTest(test)).join('');
+      const screenshotHtml = result.screenshot ?
+        '<div class="screenshot-link"><a href="' + result.screenshot + '" target="_blank">📸 View Screenshot</a></div>' : '';
 
       return \`
-        <div class="suite">
-          <div class="suite-header">\${suite.title}</div>
-          <div class="test-list">
-            \${testsHtml}
-          </div>
-        </div>
-      \`;
-    }
-
-    function renderTest(test) {
-      const statusClass = test.status === 'passed' ? 'passed' : 'failed';
-      const statusIcon = test.status === 'passed' ? '✓' : '✗';
-      const errorHtml = test.errors.length > 0 ?
-        '<div class="error-details">' + test.errors.map(e => e.message).join('\\n') + '</div>' : '';
-      const screenshotHtml = test.attachments.length > 0 ?
-        '<div class="screenshot-link"><a href="' + test.attachments[0].path + '" target="_blank">📸 View Screenshot</a></div>' : '';
-
-      // Render steps if available
-      const stepsHtml = test.steps && test.steps.length > 0 ?
-        '<div class="test-steps">' +
-        '<div class="steps-header">Steps:</div>' +
-        test.steps.map(step => {
-          const stepStatus = step.error ? 'failed' : 'passed';
-          const stepIcon = step.error ? '✗' : '✓';
-          return \`
-            <div class="step-item \${stepStatus}">
-              <span class="step-icon">\${stepIcon}</span>
-              <span class="step-title">\${step.title}</span>
-              <span class="step-duration">\${(step.duration / 1000).toFixed(2)}s</span>
-              \${step.error ? '<div class="step-error">' + step.error + '</div>' : ''}
+        <div class="env-result \${statusClass}">
+          <div class="result-header">
+            <div class="status-badge \${statusClass}">
+              <span class="status-icon \${statusClass}">\${statusIcon}</span>
+              <span>\${result.passed ? 'Passed' : 'Failed'}</span>
             </div>
-          \`;
-        }).join('') +
-        '</div>' : '';
-
-      return \`
-        <div class="test-item \${statusClass}">
-          <div style="flex: 1;">
-            <div class="test-title">\${test.title}</div>
-            \${stepsHtml}
-            \${errorHtml}
-            \${screenshotHtml}
+            <span class="duration">\${(result.duration / 1000).toFixed(2)}s</span>
           </div>
-          <div class="test-status">
-            <span class="duration">\${(test.duration / 1000).toFixed(2)}s</span>
-            <div class="status-icon \${statusClass}">\${statusIcon}</div>
-          </div>
+          \${stepsHtml}
+          \${errorHtml}
+          \${screenshotHtml}
         </div>
       \`;
     }
 
-    loadReport();
+    renderResults();
   </script>
 </body>
 </html>
     `.trim();
+  }
+
+  private convertResultToJson(result: TestResult) {
+    const screenshotRelativePath = path.relative(
+      path.join(this.outputDir, 'playwright-report'),
+      result.screenshot
+    );
+
+    return {
+      passed: result.passed,
+      duration: result.duration,
+      error: result.error,
+      screenshot: screenshotRelativePath,
+      steps: result.detailedResults?.steps || [],
+    };
   }
 }

@@ -30,13 +30,17 @@ export async function initCommand(options: InitOptions) {
     Logger.welcome();
   }
 
-  // Step 0: Ensure Playwright is installed
+  // Step 0: Check dependency status early (before config)
+  Logger.newLine();
+  const existingConfig = await ConfigManager.load();
+  await checkAllDependencies(existingConfig || undefined);
+
+  // Step 1: Ensure Playwright is installed
   Logger.newLine();
   await ensurePlaywrightInstalled();
 
-  // Check for existing configuration
+  // Step 2: Get configuration
   Logger.newLine();
-  const existingConfig = await ConfigManager.load();
   let config: Config;
 
   if (existingConfig) {
@@ -57,14 +61,14 @@ export async function initCommand(options: InitOptions) {
   // Set config for error logging
   ErrorLogger.setConfig(config);
 
-  // Step 1: Scan codebase for routes
+  // Step 3: Scan codebase for routes
   Logger.newLine();
   Logger.step('Scanning codebase for routes...');
   const scanner = new Scanner(config.scanPath, config);
   const routes = await scanner.scan();
   Logger.success(`Found ${routes.length} routes to test`);
 
-  // Step 2: Generate tests using AI
+  // Step 4: Generate tests using AI
   Logger.newLine();
   Logger.step('Generating tests using AI...');
   const generator = new TestGenerator(config);
@@ -75,20 +79,32 @@ export async function initCommand(options: InitOptions) {
   await TestCache.save(tests);
   Logger.dim('Tests saved to .lastest-tests.json');
 
-  // Step 3: Run tests against both environments
+  // Step 5: Run tests against both environments
   Logger.newLine();
   Logger.step('Running tests...');
   const runner = new TestRunner(config);
   const results = await runner.runTests(tests);
   Logger.success(`Completed ${results.length} tests`);
 
-  // Step 4: Generate report
+  // Step 6: Generate report
   Logger.newLine();
   Logger.step('Generating report...');
   const reporter = new ReportGenerator(config);
-  const reportPath = await reporter.generate(results);
+  const { reportPath, report } = await reporter.generate(results);
 
-  Logger.newLine();
+  // Display test results summary
+  if (report.environmentStats) {
+    const threshold = config.diffThreshold || 1;
+    // Pixel shifts: differences <= threshold, Differences: > threshold
+    const pixelShiftsCount = report.comparisons.filter(
+      c => c.hasDifferences && c.diffPercentage <= threshold
+    ).length;
+    const differencesCount = report.comparisons.filter(
+      c => c.hasDifferences && c.diffPercentage > threshold
+    ).length;
+    Logger.testSummary(report.environmentStats, pixelShiftsCount, differencesCount);
+  }
+
   Logger.success('Testing complete!');
   Logger.highlight(`Report: ${reportPath}`);
   Logger.dim(`Screenshots: ${path.join(config.outputDir, 'screenshots')}`);
@@ -120,6 +136,51 @@ async function verifyAISetup(config: Config): Promise<boolean> {
   } catch (error) {
     Logger.captureError(error as Error, 'AI setup verification');
     return false;
+  }
+}
+
+async function checkDependencyStatus(dependency: string, command: string): Promise<boolean> {
+  try {
+    await execAsync(command, { timeout: 5000 });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function checkAllDependencies(existingConfig?: Config): Promise<void> {
+  Logger.title('Dependency Status');
+
+  // Check Playwright
+  Logger.checking('Playwright');
+  const playwrightInstalled = await checkDependencyStatus('playwright', 'npx playwright --version');
+  if (playwrightInstalled) {
+    Logger.installed('Playwright');
+  } else {
+    Logger.notInstalled('Playwright');
+  }
+
+  // Check AI CLI if using AI mode
+  if (existingConfig?.testGenerationMode !== 'template') {
+    const aiProvider = existingConfig?.aiProvider || 'claude-subscription';
+
+    if (aiProvider === 'claude-subscription') {
+      Logger.checking('Claude CLI');
+      const claudeInstalled = await checkDependencyStatus('claude', 'claude --version');
+      if (claudeInstalled) {
+        Logger.installed('Claude CLI');
+      } else {
+        Logger.notInstalled('Claude CLI');
+      }
+    } else if (aiProvider === 'copilot-subscription') {
+      Logger.checking('GitHub Copilot CLI');
+      const copilotInstalled = await checkDependencyStatus('copilot', 'copilot --version');
+      if (copilotInstalled) {
+        Logger.installed('GitHub Copilot CLI');
+      } else {
+        Logger.notInstalled('GitHub Copilot CLI');
+      }
+    }
   }
 }
 

@@ -25,10 +25,18 @@ export class TestRunner {
       const liveResults = await this.runTestsForEnvironment(tests, 'live', this.config.liveUrl);
       results.push(...liveResults);
 
+      const livePassed = liveResults.filter(r => r.passed).length;
+      const liveFailed = liveResults.filter(r => !r.passed).length;
+      Logger.dim(`    ✓ ${livePassed}/${liveResults.length} passed  ✗ ${liveFailed}/${liveResults.length} failed`);
+
       // Run tests for dev environment
       Logger.dim('  Testing dev environment...');
       const devResults = await this.runTestsForEnvironment(tests, 'dev', this.config.devUrl);
       results.push(...devResults);
+
+      const devPassed = devResults.filter(r => r.passed).length;
+      const devFailed = devResults.filter(r => !r.passed).length;
+      Logger.dim(`    ✓ ${devPassed}/${devResults.length} passed  ✗ ${devFailed}/${devResults.length} failed`);
     } finally {
       await this.browser?.close();
     }

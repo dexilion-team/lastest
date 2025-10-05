@@ -55,9 +55,21 @@ export async function runCommand() {
   Logger.newLine();
   Logger.step('Generating report...');
   const reporter = new ReportGenerator(config);
-  const reportPath = await reporter.generate(results);
+  const { reportPath, report } = await reporter.generate(results);
 
-  Logger.newLine();
+  // Display test results summary
+  if (report.environmentStats) {
+    const threshold = config.diffThreshold || 1;
+    // Pixel shifts: differences <= threshold, Differences: > threshold
+    const pixelShiftsCount = report.comparisons.filter(
+      c => c.hasDifferences && c.diffPercentage <= threshold
+    ).length;
+    const differencesCount = report.comparisons.filter(
+      c => c.hasDifferences && c.diffPercentage > threshold
+    ).length;
+    Logger.testSummary(report.environmentStats, pixelShiftsCount, differencesCount);
+  }
+
   Logger.success('Testing complete!');
   Logger.highlight(`Report: ${reportPath}`);
   Logger.dim(`Screenshots: ${path.join(config.outputDir, 'screenshots')}`);

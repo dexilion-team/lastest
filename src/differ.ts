@@ -5,7 +5,7 @@ import pixelmatch from 'pixelmatch';
 import { ComparisonResult, TestResult } from './types';
 
 export class Differ {
-  constructor(private outputDir: string, private threshold: number = 0.1) {}
+  constructor(private outputDir: string, private threshold: number = 1) {}
 
   async compareResults(
     liveResults: TestResult[],

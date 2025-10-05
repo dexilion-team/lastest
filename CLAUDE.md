@@ -326,11 +326,12 @@ The main report (`report.html`) uses a tabbed interface with three views:
    - Per-route test status
    - Test execution metrics
 
-3. **Playwright Report Tab**: Embedded iframe showing `playwright-report/index.html`
-   - Standard Playwright test report format
-   - Step-by-step execution logs
+3. **Step-by-Step Comparison Tab**: Embedded iframe showing `playwright-report/index.html`
+   - Two-column layout comparing live vs dev environments side-by-side
+   - Route-based grouping (not environment-based suites)
+   - Step-by-step execution logs for both environments in parallel
    - Visual step indicators (✓ passed, ✗ failed)
-   - Error stack traces
+   - Error stack traces and screenshot links for each environment
 
 ### Step Logging System
 **StepTracker** (`utils/step-tracker.ts`) captures test execution steps:
@@ -392,7 +393,9 @@ Errors are:
 - `src/runner.ts:179-198` - Screenshot check after error
 - Always marks fallback cases as FAILED
 
-### Playwright Report Generation
-- `src/playwright-reporter.ts` - Full report generation
-- `src/playwright-reporter.ts:160-540` - HTML template with embedded JSON
-- `src/playwright-reporter.ts:502-517` - Step rendering logic
+### Step-by-Step Comparison Report Generation
+- `src/playwright-reporter.ts` - Full report generation with live/dev comparison
+- `src/playwright-reporter.ts:77-93` - Route grouping logic (groups by route, not environment)
+- `src/playwright-reporter.ts:107-498` - Two-column HTML template with side-by-side comparison
+- `src/playwright-reporter.ts:450-469` - Step rendering in parallel for both environments
+- `src/reporter.ts:617` - Tab label in main report
