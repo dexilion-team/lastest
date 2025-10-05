@@ -35,11 +35,7 @@ export async function initCommand(options: InitOptions) {
   const existingConfig = await ConfigManager.load();
   await checkAllDependencies(existingConfig || undefined);
 
-  // Step 1: Ensure Playwright is installed
-  Logger.newLine();
-  await ensurePlaywrightInstalled();
-
-  // Step 2: Get configuration
+  // Step 1: Get configuration
   Logger.newLine();
   let config: Config;
 
@@ -109,6 +105,10 @@ export async function initCommand(options: InitOptions) {
   Logger.highlight(`Report: ${reportPath}`);
   Logger.dim(`Screenshots: ${path.join(config.outputDir, 'screenshots')}`);
   Logger.dim(`Diffs: ${path.join(config.outputDir, 'diffs')}`);
+
+  // Check if any errors occurred during the workflow
+  const { promptForErrorReport } = await import('../cli');
+  await promptForErrorReport();
 }
 
 async function verifyAISetup(config: Config): Promise<boolean> {
@@ -151,13 +151,26 @@ async function checkDependencyStatus(dependency: string, command: string): Promi
 async function checkAllDependencies(existingConfig?: Config): Promise<void> {
   Logger.title('Dependency Status');
 
-  // Check Playwright
+  // Check and install Playwright if needed
   Logger.checking('Playwright');
   const playwrightInstalled = await checkDependencyStatus('playwright', 'npx playwright --version');
   if (playwrightInstalled) {
     Logger.installed('Playwright');
   } else {
     Logger.notInstalled('Playwright');
+    Logger.warn('Installing Playwright Chromium browser...');
+    try {
+      const { execSync } = require('child_process');
+      execSync('npx playwright install chromium', {
+        stdio: 'inherit',
+      });
+      Logger.success('Playwright installed successfully');
+    } catch (installError) {
+      Logger.error('Failed to install Playwright automatically');
+      throw new Error(
+        'Please install Playwright manually:\n  npx playwright install chromium'
+      );
+    }
   }
 
   // Check AI CLI if using AI mode
@@ -180,31 +193,6 @@ async function checkAllDependencies(existingConfig?: Config): Promise<void> {
       } else {
         Logger.notInstalled('GitHub Copilot CLI');
       }
-    }
-  }
-}
-
-async function ensurePlaywrightInstalled(): Promise<void> {
-  Logger.step('Checking Playwright installation...');
-
-  try {
-    // Check if playwright is installed
-    await execAsync('npx playwright --version', { timeout: 5000 });
-    Logger.success('Playwright is installed');
-  } catch (error) {
-    Logger.warn('Playwright not installed. Installing Chromium browser...');
-
-    try {
-      const { execSync } = require('child_process');
-      execSync('npx playwright install chromium', {
-        stdio: 'inherit',
-      });
-      Logger.success('Playwright installed successfully');
-    } catch (installError) {
-      Logger.error('Failed to install Playwright automatically');
-      throw new Error(
-        'Please install Playwright manually:\n  npx playwright install chromium'
-      );
     }
   }
 }

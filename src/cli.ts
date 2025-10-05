@@ -7,6 +7,7 @@ import { Logger } from './utils/logger';
 import { ErrorLogger } from './utils/error-logger';
 import inquirer from 'inquirer';
 import { exec } from 'child_process';
+import * as fs from 'fs';
 
 const program = new Command();
 
@@ -15,34 +16,50 @@ program
   .description('AI-powered automated visual testing CLI')
   .version('0.1.0');
 
-async function handleError(error: Error, context: string) {
-  Logger.captureError(error, context);
-
+export async function promptForErrorReport(): Promise<void> {
   if (ErrorLogger.hasErrors()) {
     Logger.newLine();
     const { sendReport } = await inquirer.prompt([
       {
         type: 'confirm',
         name: 'sendReport',
-        message: 'Would you like to send an error report to help improve lasTest?',
-        default: false,
+        message: 'I see you ran into some problems. Would you mind sending them over so we can fix them?',
+        default: true,
       },
     ]);
 
     if (sendReport) {
       const mailtoLink = ErrorLogger.getMailtoLink();
-      Logger.info('Opening email client with error report...');
 
-      // Determine the command based on platform
+      // Check if URL is too long (most mail clients have limits around 2000 chars)
+      if (mailtoLink.length > 2000) {
+        Logger.warn('Error report too long for automatic email opening');
+        Logger.info('Please copy this mailto link and paste it in your browser:');
+        Logger.highlight(mailtoLink);
+        return;
+      }
+
+      Logger.info('Opening email client with error report...');
+      Logger.dim('Or send over the error details to lastest@dexilion.com');
+
+      // Detect WSL2 environment
       const platform = process.platform;
+      const isWSL = platform === 'linux' &&
+                    fs.existsSync('/proc/version') &&
+                    fs.readFileSync('/proc/version', 'utf8').toLowerCase().includes('microsoft');
+
       let command: string;
 
-      if (platform === 'darwin') {
+      if (isWSL) {
+        // WSL: Use Windows command to open mail client
+        // Note: The empty quotes after start are for the window title
+        command = `cmd.exe /c start "" "${mailtoLink}"`;
+      } else if (platform === 'darwin') {
         command = `open "${mailtoLink}"`;
       } else if (platform === 'win32') {
-        command = `start "${mailtoLink}"`;
+        command = `start "" "${mailtoLink}"`;
       } else {
-        // Linux and others
+        // Native Linux
         command = `xdg-open "${mailtoLink}"`;
       }
 
@@ -51,11 +68,17 @@ async function handleError(error: Error, context: string) {
           Logger.warn('Could not open email client automatically');
           Logger.info('Please copy this mailto link:');
           Logger.highlight(mailtoLink);
+        } else {
+          Logger.dim('Email client opened successfully');
         }
       });
     }
   }
+}
 
+async function handleError(error: Error, context: string) {
+  Logger.captureError(error, context);
+  await promptForErrorReport();
   process.exit(1);
 }
 

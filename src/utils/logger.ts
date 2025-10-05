@@ -101,17 +101,12 @@ export class Logger {
     const pixelShiftIcon = chalk.dim('≈');
     const diffIcon = chalk.yellow('⚠');
 
-    const summary = [
-      '╔══════════════════════════════════════════════════════════════╗',
-      '║                    TEST RESULTS SUMMARY                      ║',
-      '╠══════════════════════════════════════════════════════════════╣',
-      `║  Live Environment:   ${passIcon} ${environmentStats.live.passed}/${environmentStats.live.total} passed  ${failIcon} ${environmentStats.live.failed}/${environmentStats.live.total} failed   ║`,
-      `║  Dev Environment:    ${passIcon} ${environmentStats.dev.passed}/${environmentStats.dev.total} passed  ${failIcon} ${environmentStats.dev.failed}/${environmentStats.dev.total} failed   ║`,
-      '║                                                              ║',
-      `║  Visual Comparison:  ${pixelShiftIcon} ${pixelShiftsCount} pixel shift${pixelShiftsCount !== 1 ? 's' : ''}  ${diffIcon} ${differencesCount} difference${differencesCount !== 1 ? 's' : ''}   ║`,
-      '╚══════════════════════════════════════════════════════════════╝'
-    ];
-
-    console.log('\n' + summary.join('\n') + '\n');
+    console.log('\n' + chalk.bold.white('TEST RESULTS SUMMARY'));
+    console.log(chalk.dim('─'.repeat(60)));
+    console.log(`Live Environment:    ${passIcon} ${environmentStats.live.passed}/${environmentStats.live.total} passed  ${failIcon} ${environmentStats.live.failed}/${environmentStats.live.total} failed`);
+    console.log(`Dev Environment:     ${passIcon} ${environmentStats.dev.passed}/${environmentStats.dev.total} passed  ${failIcon} ${environmentStats.dev.failed}/${environmentStats.dev.total} failed`);
+    console.log('');
+    console.log(`Visual Comparison:   ${pixelShiftIcon} ${pixelShiftsCount} pixel shift${pixelShiftsCount !== 1 ? 's' : ''}  ${diffIcon} ${differencesCount} difference${differencesCount !== 1 ? 's' : ''}   `);
+    console.log(chalk.dim('─'.repeat(60)) + '\n');
   }
 }

@@ -74,4 +74,8 @@ export async function runCommand() {
   Logger.highlight(`Report: ${reportPath}`);
   Logger.dim(`Screenshots: ${path.join(config.outputDir, 'screenshots')}`);
   Logger.dim(`Diffs: ${path.join(config.outputDir, 'diffs')}`);
+
+  // Check if any errors occurred during the workflow
+  const { promptForErrorReport } = await import('../cli');
+  await promptForErrorReport();
 }
