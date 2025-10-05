@@ -306,7 +306,29 @@ export class TestRunner {
       }).outputText;
 
       // Create a sandbox context with necessary imports
-      const sandbox: Record<string, unknown> = {
+      type TestFunction = (
+        page: Page,
+        baseUrl: string,
+        screenshotPath: string,
+        stepLogger: { log: (message: string) => void }
+      ) => Promise<void>;
+
+      interface SandboxModule {
+        exports: { test?: TestFunction };
+      }
+
+      interface SandboxContext {
+        page: Page;
+        baseUrl: string;
+        screenshotPath: string;
+        console: typeof console;
+        stepLogger: { log: (message: string) => void };
+        require: (moduleName: string) => unknown;
+        exports: { test?: TestFunction };
+        module: SandboxModule;
+      }
+
+      const sandbox: SandboxContext = {
         page,
         baseUrl,
         screenshotPath,
