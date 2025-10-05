@@ -56,7 +56,7 @@ describe('ReportGenerator', () => {
         await createMockTestResultWithScreenshot('/', 'dev', outputDir, true),
       ];
 
-      const reportPath = await reporter.generate(results);
+      const { reportPath } = await reporter.generate(results);
 
       expect(await fs.pathExists(reportPath)).toBe(true);
       expect(reportPath).toMatch(/report\.html$/);
@@ -76,7 +76,7 @@ describe('ReportGenerator', () => {
         await createMockTestResultWithScreenshot('/', 'dev', outputDir, true),
       ];
 
-      const reportPath = await reporter.generate(results);
+      const { reportPath } = await reporter.generate(results);
       const html = await fs.readFile(reportPath, 'utf-8');
 
       expect(html).toContain('lastest Report');
@@ -96,7 +96,7 @@ describe('ReportGenerator', () => {
         await createMockTestResultWithScreenshot('/about', 'dev', outputDir, true),
       ];
 
-      const reportPath = await reporter.generate(results);
+      const { reportPath } = await reporter.generate(results);
       const html = await fs.readFile(reportPath, 'utf-8');
 
       // Should show 2 total tests, 1 failed

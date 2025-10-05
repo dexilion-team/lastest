@@ -1,0 +1,38 @@
+# Source files
+src/
+tsconfig.json
+vitest.config.ts
+
+# Tests
+tests/
+*.test.ts
+*.spec.ts
+
+# Development files
+.gitignore
+.eslintrc*
+.prettierrc*
+
+# Documentation (keep README.md)
+docs/
+CLAUDE.md
+
+# Test results and temp files
+lastest-results/
+test-results/
+playwright-report/
+coverage/
+*.log
+
+# Development dependencies
+node_modules/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Environment and config
+.env*
+.lastestrc*

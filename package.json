@@ -27,16 +27,16 @@
     "ai",
     "cli"
   ],
-  "author": "",
+  "author": "ewyct",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/lastest.git"
+    "url": "https://github.com/dexilion-team/lasTest-konzole.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/lastest/issues"
+    "url": "https://github.com/dexilion-team/lasTest-konzole/issues"
   },
-  "homepage": "https://github.com/yourusername/lastest#readme",
+  "homepage": "https://github.com/dexilion-team/lasTest-konzole#readme",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.5",
     "chalk": "^4.1.2",

@@ -101,7 +101,7 @@ describe('ConfigManager', () => {
       expect(defaults.scanPath).toBe('.');
       expect(defaults.outputDir).toBe('lastest-results');
       expect(defaults.viewport).toEqual({ width: 1920, height: 1080 });
-      expect(defaults.diffThreshold).toBe(0.1);
+      expect(defaults.diffThreshold).toBe(1);
       expect(defaults.parallel).toBe(true);
       expect(defaults.maxConcurrency).toBe(5);
     });
