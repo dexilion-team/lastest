@@ -11,13 +11,11 @@ Marketing
 - npm publish
 
 APP
-- fix gh connection
-- add cool logo
 - add Made by Dexilion and contact email
 - add test result summary to console as well
 - move claude install check to beginning with playwright
+- report to show steps taken for dev and live
 
 Testing
 - error reporting prompt have never been received
-- report to show steps taken
 - fallback to happen not when test case fails, but when screenshot is not there

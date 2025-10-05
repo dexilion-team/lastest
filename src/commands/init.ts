@@ -22,21 +22,13 @@ interface InitOptions {
   dev?: string;
   scan?: string;
   ai?: string;
+  skipWelcome?: boolean;
 }
 
 export async function initCommand(options: InitOptions) {
-  // ASCII art jumping lion
-  console.log(`
-     /\\_/\\
-    ( o.o )
-     > ^ <   |\\_/|
-    /|   |\\ ( o.o )
-   (_|   |_) > ^ <
-      | |   /     \\
-      |_|  /_______\\
-  `);
-
-  Logger.title('🚀 lasTest - Automated Visual Testing');
+  if (!options.skipWelcome) {
+    Logger.welcome();
+  }
 
   // Step 0: Ensure Playwright is installed
   Logger.newLine();

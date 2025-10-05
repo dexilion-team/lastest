@@ -417,6 +417,35 @@ export ANTHROPIC_API_KEY=your-key
 - Check for dynamic content (dates, random elements)
 - Consider viewport size consistency
 
+## 🚨 Known Issues
+
+### GitHub Copilot CLI: TypeScript Not Found Error
+
+**Issue**: Intermittent errors when using `copilot-subscription` provider:
+```
+/bin/sh: 1: typescript: not found
+```
+
+**Root Cause**: The GitHub Copilot CLI attempts to execute a `typescript` command internally (likely for validation or processing), but expects it to be globally available. This happens inconsistently - sometimes Copilot validates/processes TypeScript, sometimes it doesn't.
+
+**Workarounds**:
+1. **Install TypeScript globally** (recommended):
+   ```bash
+   npm install -g typescript
+   ```
+
+2. **Add local TypeScript to PATH**:
+   ```bash
+   export PATH="$PATH:./node_modules/.bin"
+   ```
+
+3. **Switch to Claude provider**:
+   ```bash
+   lasTest init --ai claude-subscription
+   ```
+
+**Status**: This is a bug in the `@github/copilot` CLI package, not lasTest. The CLI should not require TypeScript to be globally installed when only generating code responses.
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see [CONTRIBUTING.md](.github/CONTRIBUTING.md) for details.

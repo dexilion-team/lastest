@@ -11,7 +11,7 @@ import * as path from 'path';
  * Run command - executes tests with existing configuration and cached tests
  */
 export async function runCommand() {
-  Logger.title('🚀 lasTest - Automated Visual Testing');
+  Logger.welcome();
 
   // Load existing config
   Logger.newLine();
@@ -21,7 +21,7 @@ export async function runCommand() {
   if (!config) {
     Logger.warn('No configuration found. Running initialization...');
     Logger.newLine();
-    await initCommand({});
+    await initCommand({ skipWelcome: true });
     return;
   }
 
@@ -38,7 +38,7 @@ export async function runCommand() {
   if (!tests || tests.length === 0) {
     Logger.warn('No cached tests found. Running initialization...');
     Logger.newLine();
-    await initCommand({});
+    await initCommand({ skipWelcome: true });
     return;
   }
 
