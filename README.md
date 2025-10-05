@@ -16,10 +16,12 @@
 - 🧠 **AI Route Detection** - Optional AI-powered route discovery for complex routing patterns
 - 🎯 **Custom Test Instructions** - Add your own AI instructions (e.g., "Click buttons, fill forms")
 - 📸 **Visual Regression Testing** - Captures and compares screenshots with pixel-perfect accuracy
-- 🎨 **Beautiful Reports** - Interactive HTML reports with side-by-side comparisons
+- 🎨 **Beautiful Tabbed Reports** - Interactive HTML reports with Visual Comparison, Test Results, and Playwright views
+- 🎭 **Detailed Step Logging** - AI tests log execution steps (navigation, interactions, screenshots)
 - ⚡ **Parallel Execution** - Run tests concurrently for blazing-fast results
 - 🔧 **Highly Configurable** - Customize everything via `.lastestrc.json`
 - 💾 **Test Caching** - Generated tests are cached for fast re-runs without AI calls
+- 📊 **Error Tracking** - Comprehensive error logging with email notifications support
 
 ## 🚀 Quick Start
 
@@ -153,17 +155,26 @@ lasTest init
 
 ### AI Mode (Default)
 1. **Scan** - Analyzes your codebase to discover all routes/pages
-2. **Generate** - Uses AI to create intelligent Playwright tests for each page
-3. **Execute** - Runs tests against both live and dev environments
-4. **Compare** - Performs pixel-perfect comparison of screenshots
-5. **Report** - Generates beautiful HTML and Markdown reports
+2. **Generate** - Uses AI to create intelligent Playwright tests with step logging
+3. **Cache** - Saves generated tests to `.lastest-tests.json` for fast re-runs
+4. **Execute** - Runs tests against both live and dev environments with detailed step tracking
+5. **Compare** - Performs pixel-perfect comparison of screenshots
+6. **Report** - Generates tabbed HTML report with Visual Comparison, Test Results, and Playwright views
+
+**AI Test Execution:**
+- Tests are transpiled from TypeScript to JavaScript at runtime
+- Executed in a secure VM sandbox with Playwright APIs
+- Step logging tracks navigation, interactions, and screenshot capture
+- Fallback to simple screenshot test only if screenshot is missing
+- Failed tests are marked as failed (no silent fallback)
 
 ### Template Mode (No AI)
 1. **Scan** - Analyzes your codebase to discover all routes/pages
 2. **Generate** - Creates simple screenshot tests from templates (no AI calls)
-3. **Execute** - Runs tests against both live and dev environments
-4. **Compare** - Performs pixel-perfect comparison of screenshots
-5. **Report** - Generates beautiful HTML and Markdown reports
+3. **Cache** - Saves generated tests to `.lastest-tests.json` for fast re-runs
+4. **Execute** - Runs tests against both live and dev environments
+5. **Compare** - Performs pixel-perfect comparison of screenshots
+6. **Report** - Generates tabbed HTML report with Visual Comparison, Test Results, and Playwright views
 
 **When to use Template Mode:**
 - You want fast test generation without AI costs
@@ -214,24 +225,41 @@ After running, you'll get:
 
 ```
 lastest-results/
-├── report.html          # Interactive HTML report
+├── report.html          # Interactive HTML report with tabbed view
 ├── summary.md           # Markdown summary
 ├── screenshots/
 │   ├── live/           # Live environment screenshots
 │   └── dev/            # Dev environment screenshots
 ├── diffs/              # Visual difference images
 ├── tests/              # Generated test files
+├── playwright-report/  # Playwright-compatible test report
+│   ├── index.html     # Detailed test execution report
+│   └── report.json    # Test results data
 └── data.json           # Raw test data
 ```
 
 ## 🎨 Report Preview
 
-The HTML report includes:
-- ✅ Overall test summary with pass/fail counts
-- 📸 Side-by-side screenshot comparisons
-- 🎯 Visual diff highlighting with percentage
-- 📊 Per-route comparison details
-- ⚡ Test execution metrics
+The HTML report includes a **tabbed interface** with three views:
+
+### 📸 Visual Comparison Tab
+- Side-by-side screenshot comparisons (live vs dev)
+- Visual diff highlighting with pixel difference percentage
+- Per-route comparison details
+- Environment-specific pass/fail statistics
+
+### 📊 Test Results Tab
+- Overall test summary with pass/fail counts
+- Environment breakdown (Live vs Dev)
+- Per-route test status
+- Test execution metrics
+
+### 🎭 Playwright Report Tab
+- Standard Playwright test report format
+- Detailed step-by-step execution logs
+- Test timing and performance metrics
+- Error stack traces and debugging info
+- Visual step indicators (✓ passed, ✗ failed)
 
 ## 🔧 Configuration Options
 

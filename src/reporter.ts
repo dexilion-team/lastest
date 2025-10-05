@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { Config, TestResult, Report } from './types';
 import { Differ } from './differ';
+import { PlaywrightReporter } from './playwright-reporter';
 
 export class ReportGenerator {
   constructor(private config: Config) {}
@@ -17,6 +18,20 @@ export class ReportGenerator {
     const differ = new Differ(this.config.outputDir, this.config.diffThreshold);
     const comparisons = await differ.compareResults(liveResults, devResults);
 
+    // Calculate environment-specific stats
+    const environmentStats = {
+      live: {
+        total: liveResults.length,
+        passed: liveResults.filter(r => r.passed).length,
+        failed: liveResults.filter(r => !r.passed).length,
+      },
+      dev: {
+        total: devResults.length,
+        passed: devResults.filter(r => r.passed).length,
+        failed: devResults.filter(r => !r.passed).length,
+      },
+    };
+
     // Create report object
     const report: Report = {
       timestamp: new Date().toISOString(),
@@ -27,7 +42,13 @@ export class ReportGenerator {
       failed: results.filter((r) => !r.passed).length,
       comparisons,
       duration: Date.now() - startTime,
+      environmentStats,
+      detailedResults: results,
     };
+
+    // Generate Playwright report
+    const playwrightReporter = new PlaywrightReporter(this.config.outputDir);
+    await playwrightReporter.generateReport(results, this.config.liveUrl, this.config.devUrl);
 
     // Generate HTML report
     const htmlPath = await this.generateHtmlReport(report);
@@ -50,7 +71,7 @@ export class ReportGenerator {
     return htmlPath;
   }
 
-  private buildHtmlReport(report: Report): string {
+  private buildComparisonView(report: Report): string {
     const comparisonRows = report.comparisons
       .map((comp) => {
         const statusClass = comp.hasDifferences ? 'diff' : 'match';
@@ -88,6 +109,90 @@ export class ReportGenerator {
       `;
       })
       .join('');
+
+    return `
+    <table>
+      <thead>
+        <tr>
+          <th>Route</th>
+          <th>Status</th>
+          <th>Screenshots</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${comparisonRows}
+      </tbody>
+    </table>
+    `;
+  }
+
+  private buildTestResultsView(report: Report): string {
+    if (!report.detailedResults) {
+      return '<p>No detailed test results available.</p>';
+    }
+
+    // Group results by route
+    const routeGroups = new Map<string, { live?: TestResult; dev?: TestResult }>();
+
+    for (const result of report.detailedResults) {
+      if (!routeGroups.has(result.route)) {
+        routeGroups.set(result.route, {});
+      }
+      const group = routeGroups.get(result.route)!;
+      if (result.environment === 'live') {
+        group.live = result;
+      } else {
+        group.dev = result;
+      }
+    }
+
+    const rows = Array.from(routeGroups.entries()).map(([route, { live, dev }]) => {
+      const liveStatus = live
+        ? `<div class="env-result ${live.passed ? 'passed' : 'failed'}">
+             <span class="status-icon">${live.passed ? '✓' : '✗'}</span>
+             <span class="status-text">${live.passed ? 'Passed' : 'Failed'}</span>
+             <span class="duration">${(live.duration / 1000).toFixed(2)}s</span>
+           </div>
+           ${live.error ? `<div class="error-msg">${live.error}</div>` : ''}`
+        : '<div class="env-result missing">No data</div>';
+
+      const devStatus = dev
+        ? `<div class="env-result ${dev.passed ? 'passed' : 'failed'}">
+             <span class="status-icon">${dev.passed ? '✓' : '✗'}</span>
+             <span class="status-text">${dev.passed ? 'Passed' : 'Failed'}</span>
+             <span class="duration">${(dev.duration / 1000).toFixed(2)}s</span>
+           </div>
+           ${dev.error ? `<div class="error-msg">${dev.error}</div>` : ''}`
+        : '<div class="env-result missing">No data</div>';
+
+      return `
+        <tr>
+          <td class="route-name">${route}</td>
+          <td>${liveStatus}</td>
+          <td>${devStatus}</td>
+        </tr>
+      `;
+    }).join('');
+
+    return `
+    <table class="test-results-table">
+      <thead>
+        <tr>
+          <th>Route</th>
+          <th>Live Environment</th>
+          <th>Dev Environment</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+    `;
+  }
+
+  private buildHtmlReport(report: Report): string {
+    const comparisonView = this.buildComparisonView(report);
+    const testResultsView = this.buildTestResultsView(report);
 
     return `
 <!DOCTYPE html>
@@ -304,6 +409,148 @@ export class ReportGenerator {
       color: #6b7280;
     }
 
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      background: #f9fafb;
+      padding: 0 40px;
+    }
+
+    .tab {
+      padding: 15px 25px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-weight: 500;
+      color: #6b7280;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      color: #374151;
+      background: #f3f4f6;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+      background: white;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 30px 40px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .env-stat-row {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f9fafb;
+      border-radius: 6px;
+    }
+
+    .env-stat-item {
+      flex: 1;
+    }
+
+    .env-stat-label {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .env-stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .test-results-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .test-results-table th,
+    .test-results-table td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .test-results-table th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .route-name {
+      font-family: monospace;
+      font-size: 14px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .env-result {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .env-result.passed {
+      background: #f0fdf4;
+      color: #166534;
+    }
+
+    .env-result.failed {
+      background: #fef2f2;
+      color: #991b1b;
+    }
+
+    .env-result.missing {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .env-result .status-icon {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .env-result .duration {
+      margin-left: auto;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .error-msg {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #fee;
+      border-left: 3px solid #ef4444;
+      font-size: 12px;
+      font-family: monospace;
+      color: #991b1b;
+      border-radius: 4px;
+    }
+
+    .playwright-frame {
+      width: 100%;
+      height: 800px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+    }
+
     footer {
       padding: 20px 40px;
       text-align: center;
@@ -343,22 +590,44 @@ export class ReportGenerator {
       </div>
       <div class="stat">
         <div class="stat-value">${report.comparisons.filter((c) => c.hasDifferences).length}</div>
-        <div class="stat-label">Differences Found</div>
+        <div class="stat-label">Visual Differences</div>
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Route</th>
-          <th>Status</th>
-          <th>Screenshots</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${comparisonRows}
-      </tbody>
-    </table>
+    ${report.environmentStats ? `
+    <div class="env-stat-row">
+      <div class="env-stat-item">
+        <div class="env-stat-label">Live Environment</div>
+        <div class="env-stat-value">
+          ${report.environmentStats.live.passed}/${report.environmentStats.live.total} passed
+        </div>
+      </div>
+      <div class="env-stat-item">
+        <div class="env-stat-label">Dev Environment</div>
+        <div class="env-stat-value">
+          ${report.environmentStats.dev.passed}/${report.environmentStats.dev.total} passed
+        </div>
+      </div>
+    </div>
+    ` : ''}
+
+    <div class="tabs">
+      <div class="tab active" data-tab="comparison">Visual Comparison</div>
+      <div class="tab" data-tab="test-results">Test Results</div>
+      <div class="tab" data-tab="playwright">Playwright Report</div>
+    </div>
+
+    <div class="tab-content active" id="comparison">
+      ${comparisonView}
+    </div>
+
+    <div class="tab-content" id="test-results">
+      ${testResultsView}
+    </div>
+
+    <div class="tab-content" id="playwright">
+      <iframe src="playwright-report/index.html" class="playwright-frame"></iframe>
+    </div>
 
     <footer>
       Generated by <strong>lastest</strong> - AI-powered visual testing
@@ -375,6 +644,35 @@ export class ReportGenerator {
   </div>
 
   <script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        const targetTab = this.dataset.tab;
+
+        // Remove active class from all tabs and contents
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        // Add active class to clicked tab and corresponding content
+        this.classList.add('active');
+        document.getElementById(targetTab).classList.add('active');
+
+        // Update URL hash
+        window.location.hash = targetTab;
+      });
+    });
+
+    // Handle initial hash navigation
+    window.addEventListener('load', function() {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        const tab = document.querySelector(\`[data-tab="\${hash}"]\`);
+        if (tab) {
+          tab.click();
+        }
+      }
+    });
+
     // Get modal elements
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('modalImage');

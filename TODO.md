@@ -1,4 +1,0 @@
-- ✓ AI-powered route detection as configurable option (completed)
-- ✓ Custom instructions for AI test generation (completed)
-- ✓ Documentation cleanup (completed)
-- hashrouter support?

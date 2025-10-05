@@ -129,27 +129,52 @@ ${route.filePath ? `File: ${route.filePath}` : ''}
 
 Requirements:
 1. Create a test that navigates to the route
-2. Take a full-page screenshot
-3. Check for basic page functionality (page loads, no console errors)
-4. Use proper Playwright best practices
-5. Make the test reusable for both live and dev environments
-${this.config?.customTestInstructions ? `6. ${this.config.customTestInstructions}` : ''}
+2. Wait for the page to load (use 'networkidle' or 'domcontentloaded')
+3. Take a full-page screenshot
+4. Keep it SIMPLE - do NOT try to guess CSS selectors or element IDs from the route name
+5. Only wait for elements if you have specific custom instructions
+6. Make the test reusable for both live and dev environments
+${this.config?.customTestInstructions ? `7. ${this.config.customTestInstructions}` : ''}
+
+IMPORTANT:
+- DO NOT use page.waitForSelector() unless specifically instructed
+- DO NOT guess class names or IDs based on the route path
+- Focus on navigation, load state, and screenshot
+- Use short timeouts (5-10 seconds max) if you must wait for specific elements
 
 Return ONLY the TypeScript test code, no explanations. The test should:
 - Import necessary Playwright modules
-- Export a function called 'test' that accepts (page, baseUrl, screenshotPath)
+- Export a function called 'test' that accepts (page, baseUrl, screenshotPath, stepLogger)
+- Use stepLogger.log() to record each major step (navigation, interactions, screenshot)
 - Navigate to baseUrl + route.path
-- Wait for page to be fully loaded
+- Wait for page to be fully loaded (use page.waitForLoadState)
 ${this.config?.customTestInstructions ? `- ${this.config.customTestInstructions}` : ''}
-- Take a screenshot with proper naming
-- Return screenshot path
+- Take a screenshot with the provided screenshotPath
+- Keep it simple and reliable
+
+IMPORTANT: Use stepLogger.log('message') to track test progress. Example steps:
+- stepLogger.log('Navigating to page')
+- stepLogger.log('Page loaded')
+- stepLogger.log('Found X buttons')
+- stepLogger.log('Clicked submit button')
+- stepLogger.log('Filled form field')
+- stepLogger.log('Screenshot taken')
 
 Example structure:
 \`\`\`typescript
-import { Page } from '@playwright/test';
+import { Page } from 'playwright';
 
-export async function test(page: Page, baseUrl: string, screenshotPath: string) {
-  // Test implementation
+export async function test(page: Page, baseUrl: string, screenshotPath: string, stepLogger: any) {
+  stepLogger.log('Navigating to page');
+  await page.goto(baseUrl + '/your-route', { waitUntil: 'networkidle' });
+
+  stepLogger.log('Page loaded');
+  await page.waitForLoadState('domcontentloaded');
+
+  stepLogger.log('Taking screenshot');
+  await page.screenshot({ path: screenshotPath, fullPage: true });
+
+  stepLogger.log('Test complete');
 }
 \`\`\``;
 

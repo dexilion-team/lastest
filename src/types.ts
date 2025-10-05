@@ -40,6 +40,28 @@ export interface TestResult {
   screenshot: string;
   duration: number;
   error?: string;
+  detailedResults?: DetailedTestExecution;
+}
+
+export interface DetailedTestExecution {
+  testName: string;
+  status: 'passed' | 'failed' | 'skipped' | 'timedOut';
+  duration: number;
+  retries: number;
+  startTime: string;
+  endTime: string;
+  error?: {
+    message: string;
+    stack?: string;
+  };
+  steps?: TestStep[];
+}
+
+export interface TestStep {
+  title: string;
+  duration: number;
+  error?: string;
+  status?: 'passed' | 'failed';
 }
 
 export interface ComparisonResult {
@@ -60,4 +82,19 @@ export interface Report {
   failed: number;
   comparisons: ComparisonResult[];
   duration: number;
+  environmentStats?: EnvironmentStats;
+  detailedResults?: TestResult[];
+}
+
+export interface EnvironmentStats {
+  live: {
+    total: number;
+    passed: number;
+    failed: number;
+  };
+  dev: {
+    total: number;
+    passed: number;
+    failed: number;
+  };
 }
