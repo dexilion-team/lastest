@@ -2,59 +2,6 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { TestResult } from './types';
 
-/**
- * Playwright-compatible test result format
- */
-interface PlaywrightTestResult {
-  title: string;
-  file: string;
-  line: number;
-  column: number;
-  status: 'passed' | 'failed' | 'skipped' | 'timedOut';
-  duration: number;
-  retry: number;
-  errors: Array<{
-    message: string;
-    stack?: string;
-  }>;
-  attachments: Array<{
-    name: string;
-    path: string;
-    contentType: string;
-  }>;
-  steps?: Array<{
-    title: string;
-    duration: number;
-    error?: string;
-    status?: 'passed' | 'failed';
-  }>;
-}
-
-interface PlaywrightSuite {
-  title: string;
-  file: string;
-  line: number;
-  column: number;
-  suites: PlaywrightSuite[];
-  tests: PlaywrightTestResult[];
-}
-
-interface PlaywrightReport {
-  config: {
-    rootDir: string;
-    workers: number;
-  };
-  suites: PlaywrightSuite[];
-  stats: {
-    startTime: string;
-    duration: number;
-    expected: number;
-    unexpected: number;
-    flaky: number;
-    skipped: number;
-  };
-}
-
 export class PlaywrightReporter {
   constructor(private outputDir: string) {}
 

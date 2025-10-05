@@ -439,40 +439,48 @@ ${content.slice(0, 2000)} // Limit each file to 2000 chars
     return contexts.join('\n---\n');
   }
 
-  private validateRoutes(parsed: any[]): RouteInfo[] {
+  private validateRoutes(parsed: unknown[]): RouteInfo[] {
     const validRoutes: RouteInfo[] = [];
 
     for (const item of parsed) {
+      // Type guard to ensure item is an object
+      if (typeof item !== 'object' || item === null) {
+        Logger.warn('Skipping invalid route: not an object');
+        continue;
+      }
+
+      const routeItem = item as Record<string, unknown>;
+
       // Validate required fields
-      if (!item.path || typeof item.path !== 'string') {
+      if (!routeItem.path || typeof routeItem.path !== 'string') {
         Logger.warn(`Skipping invalid route: missing or invalid 'path' field`);
         continue;
       }
 
-      if (!item.type || (item.type !== 'static' && item.type !== 'dynamic')) {
-        Logger.warn(`Skipping route ${item.path}: invalid 'type' field (must be 'static' or 'dynamic')`);
+      if (!routeItem.type || (routeItem.type !== 'static' && routeItem.type !== 'dynamic')) {
+        Logger.warn(`Skipping route ${routeItem.path}: invalid 'type' field (must be 'static' or 'dynamic')`);
         continue;
       }
 
       // Validate optional fields
       const route: RouteInfo = {
-        path: item.path,
-        type: item.type,
+        path: routeItem.path,
+        type: routeItem.type as 'static' | 'dynamic',
       };
 
-      if (item.filePath && typeof item.filePath === 'string') {
-        route.filePath = item.filePath;
+      if (routeItem.filePath && typeof routeItem.filePath === 'string') {
+        route.filePath = routeItem.filePath;
       }
 
-      if (item.component && typeof item.component === 'string') {
-        route.component = item.component;
+      if (routeItem.component && typeof routeItem.component === 'string') {
+        route.component = routeItem.component;
       }
 
-      if (item.routerType) {
-        if (item.routerType === 'hash' || item.routerType === 'browser') {
-          route.routerType = item.routerType;
+      if (routeItem.routerType) {
+        if (routeItem.routerType === 'hash' || routeItem.routerType === 'browser') {
+          route.routerType = routeItem.routerType as 'hash' | 'browser';
         } else {
-          Logger.warn(`Route ${item.path}: invalid routerType '${item.routerType}', omitting field`);
+          Logger.warn(`Route ${routeItem.path}: invalid routerType '${routeItem.routerType}', omitting field`);
         }
       }
 

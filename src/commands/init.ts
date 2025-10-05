@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import * as path from 'path';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 import { promisify } from 'util';
 import { ConfigManager } from '../config';
 import { TestCache } from '../test-cache';
@@ -119,15 +119,17 @@ async function verifyAISetup(config: Config): Promise<boolean> {
 
   try {
     switch (config.aiProvider) {
-      case 'claude-subscription':
+      case 'claude-subscription': {
         const claudeSubClient = new ClaudeSubscriptionClient();
         await claudeSubClient.testConnection();
         break;
+      }
 
-      case 'copilot-subscription':
+      case 'copilot-subscription': {
         const copilotClient = new CopilotSubscriptionClient();
         await copilotClient.testConnection();
         break;
+      }
 
       default:
         throw new Error(`Unknown AI provider: ${config.aiProvider}`);
@@ -160,7 +162,6 @@ async function checkAllDependencies(existingConfig?: Config): Promise<void> {
     Logger.notInstalled('Playwright');
     Logger.warn('Installing Playwright Chromium browser...');
     try {
-      const { execSync } = require('child_process');
       execSync('npx playwright install chromium', {
         stdio: 'inherit',
       });
@@ -225,7 +226,6 @@ async function ensureAIDependency(config: Config): Promise<void> {
 
       if (installClaude) {
         try {
-          const { execSync } = require('child_process');
           Logger.step('Installing Claude CLI...');
           execSync('npm install -g @anthropic-ai/claude-code', {
             stdio: 'inherit',
@@ -262,7 +262,6 @@ async function ensureAIDependency(config: Config): Promise<void> {
 
       if (installCopilot) {
         try {
-          const { execSync } = require('child_process');
           Logger.step('Installing GitHub Copilot CLI...');
           execSync('npm install -g @github/copilot', {
             stdio: 'inherit',

@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { chromium, Browser, Page } from 'playwright';
 import * as playwright from 'playwright';
-import { Config, TestCase, TestResult } from './types';
+import { Config, TestCase, TestResult, TestStep } from './types';
 import { Logger } from './utils/logger';
 import { StepTracker } from './utils/step-tracker';
 import * as vm from 'vm';
@@ -207,7 +207,7 @@ export class TestRunner {
 
         // Return as FAILED (whether fallback ran or not)
         // Include steps if they were captured before the error
-        const errorWithSteps: any = error;
+        const errorWithSteps = error as Error & { steps?: TestStep[] };
         const steps = errorWithSteps.steps;
 
         return {
@@ -306,7 +306,7 @@ export class TestRunner {
       }).outputText;
 
       // Create a sandbox context with necessary imports
-      const sandbox: any = {
+      const sandbox: Record<string, unknown> = {
         page,
         baseUrl,
         screenshotPath,
@@ -395,7 +395,7 @@ export class TestRunner {
       }
 
       // Re-throw error with steps - caller will check for screenshot and handle fallback
-      const detailedError: any = error;
+      const detailedError = error as Error & { steps?: TestStep[] };
       detailedError.steps = steps;
       throw detailedError;
     }
