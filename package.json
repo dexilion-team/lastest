@@ -1,5 +1,5 @@
 {
-  "name": "lastest",
+  "name": "@dexilion/lastest",
   "version": "0.1.0",
   "description": "AI-powered automated visual testing CLI that compares live vs dev environments",
   "main": "dist/index.js",
