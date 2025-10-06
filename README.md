@@ -1,8 +1,7 @@
 # lasTest konzol
 
 > AI-powered automated visual testing CLI that compares live vs dev environments mostly for vibe-coders.
-
-[![CI](https://github.com/dexilion-team/lastest/workflows/CI/badge.svg)](https://github.com/dexilion-team/lastest/actions)
+[![CI](https://github.com/dexilion-team/lasTest-konzole/actions/workflows/ci.yml/badge.svg)](https://github.com/dexilion-team/lasTest-konzole/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/lastest.svg)](https://www.npmjs.com/package/lastest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
