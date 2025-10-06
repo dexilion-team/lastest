@@ -1,5 +1,6 @@
 import * as os from 'os';
 import { Config } from '../types';
+import * as packageJson from '../../package.json';
 
 export interface ErrorLog {
   timestamp: string;
@@ -10,8 +11,8 @@ export interface ErrorLog {
 
 export class ErrorLogger {
   private static errors: ErrorLog[] = [];
-  private static appName = 'lasTest';
-  private static appVersion = '0.1.0';
+  private static appName = packageJson.name;
+  private static appVersion = packageJson.version;
   private static config?: Config;
 
   static setConfig(config: Config) {
