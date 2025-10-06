@@ -1,4 +1,4 @@
-# Contributing to lastest
+# Contributing to lasTest
 
 Thank you for your interest in contributing to lastest! This document provides guidelines and instructions for contributing.
 
@@ -10,7 +10,7 @@ Be respectful, inclusive, and professional in all interactions.
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/lastest/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/dexilion-team/lastest-lite/issues)
 2. Use the bug report template
 3. Include:
    - Node.js version
@@ -21,7 +21,7 @@ Be respectful, inclusive, and professional in all interactions.
 
 ### Suggesting Features
 
-1. Check existing [Issues](https://github.com/yourusername/lastest/issues) for similar suggestions
+1. Check existing [Issues](https://github.com/dexilion-team/lastest-lite/issues) for similar suggestions
 2. Use the feature request template
 3. Clearly describe:
    - The problem you're trying to solve
@@ -32,15 +32,17 @@ Be respectful, inclusive, and professional in all interactions.
 ### Pull Requests
 
 1. **Fork the repository**
+   First, fork the repository at `https://github.com/dexilion-team/lastest-lite.git` on GitHub. Then proceed to checkout your fork and install dependencies:
+
    ```bash
-   git clone https://github.com/yourusername/lastest.git
+   git clone https://github.com/<your-username>/lastest-lite.git
    cd lastest
    npm install
    ```
 
 2. **Create a branch**
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b <fix|feat|chore|docs|test|refactor>/<your-short-feature-name>
    ```
 
 3. **Make your changes**
@@ -67,7 +69,7 @@ Be respectful, inclusive, and professional in all interactions.
 
 5. **Push and create PR**
    ```bash
-   git push origin feature/your-feature-name
+   git push origin <fix|feat|chore|docs|test|refactor>/<your-short-feature-name>
    ```
    Then open a pull request on GitHub.
 
