@@ -44,12 +44,12 @@ The tool follows a strict 5-stage pipeline orchestrated by `src/commands/init.ts
 ### Key Architectural Patterns
 
 #### Two-Command Model
-- **`lasTest init`**: Full pipeline with AI generation (scan → generate → cache → run → report)
-- **`lasTest`**: Fast re-runs using cached tests (load cache → run → report, **no AI calls**)
+- **`lastest init`**: Full pipeline with AI generation (scan → generate → cache → run → report)
+- **`lastest`**: Fast re-runs using cached tests (load cache → run → report, **no AI calls**)
 
 This separation allows users to:
 - Run `init` once to generate tests with AI
-- Run `lasTest` repeatedly for fast test execution without AI costs
+- Run `lastest` repeatedly for fast test execution without AI costs
 
 #### AI Provider Abstraction
 Both AI clients (`ClaudeSubscriptionClient`, `CopilotSubscriptionClient`) implement:
@@ -105,7 +105,6 @@ Three files control behavior (all in current working directory):
 - UI displays: "lasTest" (capital T)
 - Package name: "lastest"
 - Config files: `.lastestrc.json`, `.lastest-tests.json`
-- Binary commands: Both `lastest` and `lasTest` work (aliases in package.json)
 
 #### AI Client Specifics
 

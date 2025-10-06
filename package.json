@@ -4,12 +4,11 @@
   "description": "AI-powered automated visual testing CLI that compares live vs dev environments",
   "main": "dist/index.js",
   "bin": {
-    "lastest": "dist/cli.js",
-    "lasTest": "dist/cli.js"
+    "lastest": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
+    "run": "tsc && node dist/cli.js",
     "test": "vitest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
@@ -27,16 +26,16 @@
     "ai",
     "cli"
   ],
-  "author": "ewyct",
+  "author": "Dexilion Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dexilion-team/lasTest-konzole.git"
+    "url": "https://github.com/dexilion-team/lastest.git"
   },
   "bugs": {
-    "url": "https://github.com/dexilion-team/lasTest-konzole/issues"
+    "url": "https://github.com/dexilion-team/lastest/issues"
   },
-  "homepage": "https://github.com/dexilion-team/lasTest-konzole#readme",
+  "homepage": "https://github.com/dexilion-team/lastest#readme",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.5",
     "chalk": "^4.1.2",
@@ -59,7 +58,7 @@
     "@typescript-eslint/parser": "^6.20.0",
     "eslint": "^8.56.0",
     "prettier": "^3.2.5",
-    "vitest": "^1.2.2"
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=18.0.0"

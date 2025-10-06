@@ -1,7 +1,7 @@
-# lasTest konzol
+# lasTest
 
 > AI-powered automated visual testing CLI that compares live vs dev environments mostly for vibe-coders.
-[![CI](https://github.com/dexilion-team/lasTest-konzole/actions/workflows/ci.yml/badge.svg)](https://github.com/dexilion-team/lasTest-konzole/actions/workflows/ci.yml)
+[![CI](https://github.com/dexilion-team/lastest/actions/workflows/ci.yml/badge.svg)](https://github.com/dexilion-team/lastest/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/lastest.svg)](https://www.npmjs.com/package/lastest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -52,7 +52,7 @@ You'll need one of the following:
 ### Setup
 
 ```bash
-npx lasTest init
+npx lastest init
 ```
 
 That's it! The CLI will guide you through:
@@ -78,7 +78,7 @@ npm install --save-dev lastest
 ### npx (No Installation)
 
 ```bash
-npx lasTest init
+npx lastest init
 ```
 
 ## 📖 Usage
@@ -88,7 +88,7 @@ npx lasTest init
 Run this to create your configuration and generate tests:
 
 ```bash
-lasTest init
+lastest init
 ```
 
 This will:
@@ -103,7 +103,7 @@ This will:
 Once configured and tests are generated, simply run:
 
 ```bash
-lasTest
+lastest
 ```
 
 This will:
@@ -117,7 +117,7 @@ This will:
 To update your configuration or regenerate tests with AI:
 
 ```bash
-lasTest init
+lastest init
 ```
 
 When you have an existing config, it will ask if you want to update it. This regenerates tests from scratch.
@@ -125,7 +125,7 @@ When you have an existing config, it will ask if you want to update it. This reg
 ### With Options
 
 ```bash
-lasTest init \
+lastest init \
   --live https://example.com \
   --dev http://localhost:3000 \
   --ai claude-subscription \
@@ -166,7 +166,7 @@ Or with GitHub Copilot:
 Then run:
 
 ```bash
-lasTest init
+lastest init
 ```
 
 ## 🎯 How It Works
@@ -216,7 +216,7 @@ npm install -g @anthropic-ai/claude-code
 claude login
 
 # Then use lasTest
-lasTest init --ai claude-subscription
+lastest init --ai claude-subscription
 ```
 
 ### Using GitHub Copilot Subscription
@@ -234,7 +234,7 @@ copilot
 export GITHUB_TOKEN=your_token
 
 # Then use lasTest
-lasTest init --ai copilot-subscription
+lastest init --ai copilot-subscription
 ```
 
 ## 📊 Output
@@ -317,7 +317,7 @@ npm install -g @anthropic-ai/claude-code
 claude login
 
 # Use in any project
-lasTest init --ai claude-subscription
+lastest init --ai claude-subscription
 ```
 
 - **Cost**: Included with Claude Pro ($20/mo) or Max ($200/mo annual)
@@ -335,7 +335,7 @@ copilot
 # Then enter: /login
 
 # Use in any project
-lasTest init --ai copilot-subscription
+lastest init --ai copilot-subscription
 ```
 
 - **Cost**: Included with Copilot Pro ($10/mo), Business ($19/user/mo), or Enterprise
@@ -372,7 +372,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          npx lasTest init \
+          npx lastest init \
             --live https://example.com \
             --dev http://localhost:3000 \
             --ai claude
@@ -461,7 +461,7 @@ export ANTHROPIC_API_KEY=your-key
 
 3. **Switch to Claude provider**:
    ```bash
-   lasTest init --ai claude-subscription
+   lastest init --ai claude-subscription
    ```
 
 **Status**: This is a bug in the `@github/copilot` CLI package, not lasTest. The CLI should not require TypeScript to be globally installed when only generating code responses.

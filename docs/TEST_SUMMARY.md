@@ -6,7 +6,7 @@ Comprehensive test suite for validating all functionality of the lasTest tool us
 ## Configuration
 - **Live URL**: `https://dexilion.com/`
 - **Dev URL**: `http://localhost:3000`
-- **Scan Path**: `/home/wyctor/dexilion.com/`
+- **Scan Path**: `/home/developer/dexilion.com/`
 
 ---
 

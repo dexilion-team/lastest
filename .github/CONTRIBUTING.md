@@ -10,7 +10,7 @@ Be respectful, inclusive, and professional in all interactions.
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/dexilion-team/lastest-lite/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/dexilion-team/lastest/issues)
 2. Use the bug report template
 3. Include:
    - Node.js version
@@ -21,7 +21,7 @@ Be respectful, inclusive, and professional in all interactions.
 
 ### Suggesting Features
 
-1. Check existing [Issues](https://github.com/dexilion-team/lastest-lite/issues) for similar suggestions
+1. Check existing [Issues](https://github.com/dexilion-team/lastest/issues) for similar suggestions
 2. Use the feature request template
 3. Clearly describe:
    - The problem you're trying to solve
@@ -32,10 +32,10 @@ Be respectful, inclusive, and professional in all interactions.
 ### Pull Requests
 
 1. **Fork the repository**
-   First, fork the repository at `https://github.com/dexilion-team/lastest-lite.git` on GitHub. Then proceed to checkout your fork and install dependencies:
+   First, fork the repository at `https://github.com/dexilion-team/lastest.git` on GitHub. Then proceed to checkout your fork and install dependencies:
 
    ```bash
-   git clone https://github.com/<your-username>/lastest-lite.git
+   git clone https://github.com/<your-username>/lastest.git
    cd lastest
    npm install
    ```
