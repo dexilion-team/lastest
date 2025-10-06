@@ -2,7 +2,7 @@
 
 > AI-powered automated visual testing CLI that compares live vs dev environments mostly for vibe-coders.
 [![CI](https://github.com/dexilion-team/lastest/actions/workflows/ci.yml/badge.svg)](https://github.com/dexilion-team/lastest/actions/workflows/ci.yml)
-[![npm version](https://badge.fury.io/js/lastest.svg)](https://www.npmjs.com/package/lastest)
+[![npm version](https://badge.fury.io/js/@dexilion%2Flastest.svg)](https://www.npmjs.com/package/@dexilion/lastest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ```
@@ -52,7 +52,7 @@ You'll need one of the following:
 ### Setup
 
 ```bash
-npx lastest init
+npx @dexilion/lastest init
 ```
 
 That's it! The CLI will guide you through:
@@ -66,19 +66,19 @@ That's it! The CLI will guide you through:
 ### Global Installation
 
 ```bash
-npm install -g lastest
+npm install -g @dexilion/lastest
 ```
 
 ### Local Installation
 
 ```bash
-npm install --save-dev lastest
+npm install --save-dev @dexilion/lastest
 ```
 
 ### npx (No Installation)
 
 ```bash
-npx lastest init
+npx @dexilion/lastest init
 ```
 
 ## 📖 Usage
@@ -372,7 +372,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          npx lastest init \
+          npx @dexilion/lastest init \
             --live https://example.com \
             --dev http://localhost:3000 \
             --ai claude
@@ -387,7 +387,7 @@ jobs:
 ### Programmatic Usage
 
 ```typescript
-import { Scanner, TestGenerator, TestRunner, ReportGenerator } from 'lastest';
+import { Scanner, TestGenerator, TestRunner, ReportGenerator } from '@dexilion/lastest';
 
 const config = {
   aiProvider: 'claude',
