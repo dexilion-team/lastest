@@ -69,7 +69,7 @@ Architecture: ${os.arch()}`;
   static getMailtoLink(): string {
     const subject = encodeURIComponent(this.generateEmailSubject());
     const body = encodeURIComponent(this.generateEmailBody());
-    return `mailto:info@dexilion.com?subject=${subject}&body=${body}`;
+    return `mailto:lastest-lite@dexilion.com?subject=${subject}&body=${body}`;
   }
 
   private static formatErrors(): string {
