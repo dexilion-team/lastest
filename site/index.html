@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="lasTest - AI-powered visual testing CLI that compares live vs dev environments. Built for developers who use AI coding tools.">
+  <meta name="keywords" content="visual testing, playwright, regression testing, AI, automated testing, screenshot comparison, CLI tool">
+  <meta name="author" content="Dexilion Team">
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="lasTest - AI-Powered Visual Testing CLI">
+  <meta property="og:description" content="Built this over the weekend so I won't break prod. AI-powered visual testing that compares live vs dev environments.">
+  <meta property="og:url" content="https://dexilion-team.github.io/lastest/">
+  <meta property="og:image" content="https://dexilion-team.github.io/lastest/Screenshot%202025-10-05%20210905.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="lasTest - AI-Powered Visual Testing CLI">
+  <meta name="twitter:description" content="Built this over the weekend so I won't break prod. Free & open source visual testing tool.">
+  <meta name="twitter:image" content="https://dexilion-team.github.io/lastest/Screenshot%202025-10-05%20210905.png">
+
+  <title>lasTest - AI-Powered Visual Testing CLI</title>
+
+  <style>
+    /* Reset and Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.6;
+    }
+
+    /* lasTest Konzole Page Styles */
+    .lastest-konzole-page {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
+      color: #ffffff;
+    }
+
+    .lk-hero {
+      padding: 4rem 2rem 3rem;
+      text-align: center;
+      background: linear-gradient(rgba(10, 14, 26, 0.95), rgba(10, 14, 26, 0.9));
+    }
+
+    .lk-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      border-radius: 25px;
+      padding: 0.5rem 1rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .lk-hero-badge-icon {
+      font-size: 1rem;
+    }
+
+    .lk-install-command .lk-ascii-art {
+      margin: 0;
+      display: inline-block;
+      background: transparent;
+      border-radius: 0;
+      padding: 0;
+      border: none;
+      box-shadow: none;
+    }
+
+    .lk-install-command .lk-ascii-art pre {
+      font-family: 'Courier New', monospace;
+      font-size: 0.65rem;
+      line-height: 1.2;
+      color: #34d399;
+      margin: 0;
+      text-align: left;
+      overflow-x: auto;
+    }
+
+    .lk-hero-content h1 {
+      font-size: 4rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(45deg, #34d399, #10b981, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: bold;
+    }
+
+    .lk-hero-tagline {
+      font-size: 1.5rem;
+      color: #34d399;
+      margin-bottom: 1rem;
+      font-weight: 300;
+    }
+
+    .lk-hero-subtitle {
+      font-size: 1.2rem;
+      max-width: 900px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    .lk-hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .lk-hero-cta-primary, .lk-hero-cta-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .lk-hero-cta-primary {
+      background: linear-gradient(45deg, #34d399, #10b981);
+      color: #0a0e1a;
+    }
+
+    .lk-hero-cta-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(52, 211, 153, 0.4);
+    }
+
+    .lk-hero-cta-secondary {
+      background: transparent;
+      color: #34d399;
+      border: 2px solid #34d399;
+    }
+
+    .lk-hero-cta-secondary:hover {
+      background: rgba(52, 211, 153, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .lk-hero-cta-icon {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .lk-install-command {
+      display: inline-block;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      border-radius: 6px;
+      padding: 1rem 2rem;
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    .lk-install-command > code {
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      color: #34d399;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    .lk-demo-section {
+      padding: 3rem 2rem;
+      text-align: center;
+      background: rgba(52, 211, 153, 0.03);
+    }
+
+    .lk-demo-section h2 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      color: #34d399;
+    }
+
+    .lk-demo-video {
+      max-width: 1200px;
+      margin: 0 auto;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      box-shadow: 0 10px 40px rgba(52, 211, 153, 0.2);
+    }
+
+    .lk-demo-video img {
+      width: 100%;
+      display: block;
+    }
+
+    .lk-features {
+      padding: 4rem 2rem;
+    }
+
+    .lk-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .lk-features h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      color: #34d399;
+    }
+
+    .lk-intro {
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto 3rem;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    .lk-feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .lk-feature-card {
+      background: rgba(52, 211, 153, 0.05);
+      padding: 2rem;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      text-align: center;
+    }
+
+    .lk-feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(52, 211, 153, 0.3);
+      border-color: rgba(52, 211, 153, 0.4);
+    }
+
+    .lk-feature-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(52, 211, 153, 0.2);
+      color: #34d399;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .lk-feature-card h3 {
+      color: #34d399;
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+
+    .lk-feature-card p {
+      line-height: 1.6;
+      opacity: 0.9;
+      text-align: left;
+    }
+
+    .lk-feature-card code {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #34d399;
+      font-size: 0.9em;
+    }
+
+    .lk-limitations {
+      padding: 4rem 2rem;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .lk-limitations h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      color: #34d399;
+    }
+
+    .lk-limitations-list {
+      list-style: none;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0;
+    }
+
+    .lk-limitations-list li {
+      font-size: 1.1rem;
+      padding: 0.5rem 0;
+      opacity: 0.9;
+    }
+
+    .lk-how-it-works {
+      padding: 4rem 2rem;
+      background: rgba(52, 211, 153, 0.05);
+    }
+
+    .lk-how-it-works h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 3rem;
+      color: #34d399;
+    }
+
+    .lk-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .lk-step {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 2rem;
+      background: rgba(52, 211, 153, 0.08);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+
+    .lk-step-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #34d399;
+      min-width: 60px;
+      text-align: center;
+      background: rgba(52, 211, 153, 0.2);
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lk-step-content h3 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      color: #34d399;
+    }
+
+    .lk-step-content p {
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    .lk-step-content code {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #34d399;
+      font-size: 0.95em;
+    }
+
+    .lk-cli-gallery,
+    .lk-report-gallery {
+      padding: 4rem 2rem;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .lk-report-gallery {
+      background: rgba(52, 211, 153, 0.05);
+    }
+
+    .lk-cli-gallery h2,
+    .lk-report-gallery h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #34d399;
+    }
+
+    .lk-gallery-intro {
+      text-align: center;
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-bottom: 3rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .lk-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .lk-gallery-item {
+      background: rgba(52, 211, 153, 0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .lk-gallery-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(52, 211, 153, 0.3);
+      border-color: rgba(52, 211, 153, 0.4);
+    }
+
+    .lk-gallery-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-bottom: 1px solid rgba(52, 211, 153, 0.2);
+    }
+
+    .lk-gallery-caption {
+      padding: 1.5rem;
+      text-align: center;
+      color: #ffffff;
+      opacity: 0.9;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .lk-ai-providers {
+      padding: 4rem 2rem;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .lk-ai-providers h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #34d399;
+    }
+
+    .lk-ai-intro {
+      text-align: center;
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-bottom: 3rem;
+    }
+
+    .lk-ai-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .lk-ai-card {
+      background: rgba(52, 211, 153, 0.08);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .lk-ai-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(52, 211, 153, 0.3);
+      border-color: rgba(52, 211, 153, 0.5);
+    }
+
+    .lk-ai-card h3 {
+      font-size: 1.8rem;
+      color: #34d399;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .lk-ai-price {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #34d399;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .lk-ai-desc {
+      text-align: center;
+      opacity: 0.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .lk-ai-features {
+      list-style: none;
+      padding: 0;
+      margin: 1.5rem 0;
+    }
+
+    .lk-ai-features li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: #ffffff;
+    }
+
+    .lk-ai-features svg {
+      color: #34d399;
+      font-size: 1rem;
+    }
+
+    .lk-ai-setup {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .lk-ai-setup code {
+      display: block;
+      font-family: 'Courier New', monospace;
+      color: #34d399;
+      font-size: 0.9rem;
+      margin: 0.5rem 0;
+      padding: 0.3rem;
+    }
+
+    .lk-framework-support {
+      padding: 4rem 2rem;
+      background: rgba(52, 211, 153, 0.03);
+    }
+
+    .lk-framework-support h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #34d399;
+    }
+
+    .lk-framework-intro {
+      text-align: center;
+      font-size: 1.1rem;
+      opacity: 0.9;
+      margin-bottom: 3rem;
+    }
+
+    .lk-framework-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .lk-framework-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.5rem;
+      background: rgba(52, 211, 153, 0.08);
+      border-radius: 8px;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      font-size: 1.1rem;
+      transition: transform 0.3s ease;
+    }
+
+    .lk-framework-item:hover {
+      transform: translateX(5px);
+      border-color: rgba(52, 211, 153, 0.4);
+    }
+
+    .lk-framework-icon {
+      color: #34d399;
+      font-size: 1.5rem;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .lk-cta {
+      padding: 4rem 2rem;
+      text-align: center;
+      background: rgba(52, 211, 153, 0.1);
+    }
+
+    .lk-cta h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #34d399;
+    }
+
+    .lk-cta p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .lk-cta-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 2rem 0;
+    }
+
+    .lk-cta-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .lk-cta-primary {
+      background: linear-gradient(45deg, #34d399, #10b981);
+      color: #0a0e1a;
+    }
+
+    .lk-cta-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(52, 211, 153, 0.4);
+    }
+
+    .lk-cta-secondary {
+      background: transparent;
+      color: #34d399;
+      border: 2px solid #34d399;
+    }
+
+    .lk-cta-secondary:hover {
+      background: rgba(52, 211, 153, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .lk-install-command-footer {
+      display: inline-block;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      border-radius: 6px;
+      padding: 1rem 2rem;
+      margin: 2rem 0 1rem;
+    }
+
+    .lk-install-command-footer code {
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    .lk-cta-subtitle {
+      font-size: 1rem;
+      opacity: 0.8;
+      margin-top: 1.5rem;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .lk-ascii-art pre {
+        font-size: 0.4rem;
+      }
+
+      .lk-hero-content h1 {
+        font-size: 2.5rem;
+      }
+
+      .lk-hero-tagline {
+        font-size: 1.3rem;
+      }
+
+      .lk-hero-subtitle {
+        font-size: 1.1rem;
+      }
+
+      .lk-hero-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .lk-features h2,
+      .lk-how-it-works h2,
+      .lk-ai-providers h2,
+      .lk-framework-support h2,
+      .lk-cta h2 {
+        font-size: 2rem;
+      }
+
+      .lk-feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lk-step {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .lk-ai-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lk-framework-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lk-gallery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .lk-cta-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .lk-install-command code,
+      .lk-install-command-footer code {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="lastest-konzole-page">
+    <!-- Hero Section -->
+    <section class="lk-hero">
+      <div class="lk-hero-content">
+        <div class="lk-hero-badge">
+          <svg class="lk-hero-badge-icon" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+          </svg>
+          <span>Weekend Project • Free & Open Source</span>
+        </div>
+
+        <h1>lasTest</h1>
+        <p class="lk-hero-tagline">Built this over the weekend so I won't break prod.</p>
+        <p class="lk-hero-subtitle">
+          AI-powered visual testing CLI that compares live vs dev environments. Rough edges, but it works.
+          Built it for myself, sharing because you might need it too.
+        </p>
+        <div class="lk-hero-actions">
+          <a href="https://github.com/dexilion-team/lastest" target="_blank" rel="noopener noreferrer" class="lk-hero-cta-primary">
+            <svg class="lk-hero-cta-icon" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            View on GitHub
+          </a>
+        </div>
+        <div class="lk-install-command">
+          <code>npx @dexilion/lastest init</code>
+          <div class="lk-ascii-art">
+            <pre>╔═══════════════════════════════════════════════════════════════════════════╗
+║   /\_/\           █████████████████████████████████████████████████████╗  ║
+║  ( o.o )          ╚════════════════════════██╔═════════════════════════╝  ║
+║   > ^ <   |\_/|   ██╗      █████╗ ███████╗ ██║ ███████╗███████╗████████╗  ║
+║  /|   |\ ( o.o )  ██║     ██╔══██╗██╔════╝ ██║ ██╔════╝██╔════╝╚══██╔══╝  ║
+║ (_|   |_) > ^ <   ██║     ███████║███████╗ ██║ █████╗  ███████╗   ██║     ║
+║    | |   /     \  ██║     ██╔══██║╚════██║ ██║ ██╔══╝  ╚════██║   ██║     ║
+║    |_|  /_______\ ███████╗██║  ██║███████║ ██║ ███████╗███████║   ██║     ║
+║                   ╚══════╝╚═╝  ╚═╝╚══════╝ ╚═╝ ╚══════╝╚══════╝   ╚═╝     ║
+║                                                                           ║
+║                                                 Automated Visual Testing  ║
+║                                                         made by Dexilion  ║
+║                                                             dexilion.com  ║
+║                                                                   v0.1.2  ║
+╚═══════════════════════════════════════════════════════════════════════════╝</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section class="lk-demo-section">
+      <div class="lk-container">
+        <h2>See It In Action</h2>
+        <div class="lk-demo-video">
+          <img src="lastestvideo.gif" alt="lasTest CLI Demo - Automated visual regression testing in action">
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="lk-features">
+      <div class="lk-container">
+        <h2>The Problem</h2>
+        <div class="lk-intro">
+          <p>
+            We use AI coding tools heavily (mostly Copilot, Claude). One Saturday,
+            an AI-generated UI change broke a site.
+          </p>
+
+          <p>
+            Built this over the weekend so we can have better QA without investing in it a lot more time. Rough edges, but it works. Made it free and open source because
+            others probably have the same problem.
+          </p>
+        </div>
+
+        <h2>What It Does Well</h2>
+        <div class="lk-feature-grid">
+          <div class="lk-feature-card">
+            <div class="lk-feature-icon">
+              <svg fill="currentColor" viewBox="0 0 16 16" width="24" height="24">
+                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
+                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
+              </svg>
+            </div>
+            <h3>Actually Fast</h3>
+            <p>
+              30 seconds from install to report. Not 30 minutes.
+              Run <code>npx @dexilion/lastest init</code> and you're done.
+            </p>
+          </div>
+
+          <div class="lk-feature-card">
+            <div class="lk-feature-icon">
+              <svg fill="currentColor" viewBox="0 0 16 16" width="24" height="24">
+                <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.93 4.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM8 5.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+              </svg>
+            </div>
+            <h3>Uses AI You Already Pay For</h3>
+            <p>
+              Works with Claude Pro or GitHub Copilot subscription. No extra API costs.
+              It generates Playwright tests automatically—sometimes they're wonky, but mostly they work.
+            </p>
+          </div>
+
+          <div class="lk-feature-card">
+            <div class="lk-feature-icon">
+              <svg fill="currentColor" viewBox="0 0 16 16" width="24" height="24">
+                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+              </svg>
+            </div>
+            <h3>Zero Config</h3>
+            <p>
+              Scans your codebase automatically. Supports Next.js, React Router, Vue Router, static sites.
+              Just point it at your URLs.
+            </p>
+          </div>
+
+          <div class="lk-feature-card">
+            <div class="lk-feature-icon">
+              <svg fill="currentColor" viewBox="0 0 16 16" width="24" height="24">
+                <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
+                <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319z"/>
+              </svg>
+            </div>
+            <h3>Good Enough Reports</h3>
+            <p>
+              HTML with side-by-side diffs. Could be prettier, but they work.
+              Shows you what broke so you can fix it.
+            </p>
+          </div>
+
+          <div class="lk-feature-card">
+            <div class="lk-feature-icon">
+              <svg fill="currentColor" viewBox="0 0 16 16" width="24" height="24">
+                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+              </svg>
+            </div>
+            <h3>Free Forever</h3>
+            <p>
+              MIT license. No usage limits. No freemium bait-and-switch.
+              Good enough for my projects, might be good enough for yours.
+            </p>
+          </div>
+
+          <div class="lk-feature-card">
+            <div class="lk-feature-icon">
+              <svg fill="currentColor" viewBox="0 0 16 16" width="24" height="24">
+                <path d="M5.854 4.854a.5.5 0 1 0-.708-.708l-3.5 3.5a.5.5 0 0 0 0 .708l3.5 3.5a.5.5 0 0 0 .708-.708L2.707 8l3.147-3.146zm4.292 0a.5.5 0 0 1 .708-.708l3.5 3.5a.5.5 0 0 1 0 .708l-3.5 3.5a.5.5 0 0 1-.708-.708L13.293 8l-3.147-3.146z"/>
+              </svg>
+            </div>
+            <h3>Template Mode Available</h3>
+            <p>
+              Skip AI if you just need screenshots. Even faster, no AI costs.
+              Basic, but works for simple comparisons.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Limitations Section -->
+    <section class="lk-limitations">
+      <div class="lk-container">
+        <h2>What It Doesn't Do (Yet)</h2>
+        <div class="lk-intro">
+          <p>
+            This isn't enterprise-grade yet. It's a tool I built for myself that I'm sharing. It has rough edges.
+          </p>
+        </div>
+        <ul class="lk-limitations-list">
+          <li>❌ Enterprise features</li>
+          <li>❌ Advanced test customization (PRs welcome!)</li>
+          <li>❌ Multiple baselines or complex branching</li>
+          <li>❌ Team collaboration features</li>
+          <li>❌ Sometimes the AI generates wonky tests</li>
+          <li>❌ Error messages could be better</li>
+        </ul>
+        <div class="lk-intro">
+          <p>
+            <strong>It's a weekend project that solves one problem:</strong> catch visual regressions before users do.
+          </p>
+          <p>
+            Good enough for side projects. Your mileage may vary.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="lk-how-it-works">
+      <div class="lk-container">
+        <h2>How It Works</h2>
+        <div class="lk-steps">
+          <div class="lk-step">
+            <div class="lk-step-number">1</div>
+            <div class="lk-step-content">
+              <h3>Run One Command</h3>
+              <p>
+                <code>npx @dexilion/lastest init</code> — that's it! The CLI guides you through choosing your AI provider
+                (Claude or Copilot), entering your URLs, and configuring options.
+              </p>
+            </div>
+          </div>
+          <div class="lk-step">
+            <div class="lk-step-number">2</div>
+            <div class="lk-step-content">
+              <h3>AI Generates Tests</h3>
+              <p>
+                lasTest scans your codebase for routes, uses AI to create intelligent Playwright tests
+                with step logging, and caches them for fast re-runs.
+              </p>
+            </div>
+          </div>
+          <div class="lk-step">
+            <div class="lk-step-number">3</div>
+            <div class="lk-step-content">
+              <h3>Get Visual Diffs</h3>
+              <p>
+                Tests run against both live and dev environments, capturing screenshots and performing
+                pixel-perfect comparisons. View results in a beautiful HTML report.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLI Gallery Section -->
+    <section class="lk-cli-gallery">
+      <div class="lk-container">
+        <h2>CLI Interface</h2>
+        <p class="lk-gallery-intro">
+          Beautiful terminal experience with interactive prompts and real-time progress tracking
+        </p>
+        <div class="lk-gallery-grid">
+          <div class="lk-gallery-item">
+            <img src="Screenshot 2025-10-05 210905.png" alt="lasTest CLI - Initial setup and configuration" loading="lazy">
+            <p class="lk-gallery-caption">Interactive setup wizard with AI provider selection</p>
+          </div>
+          <div class="lk-gallery-item">
+            <img src="Screenshot 2025-10-05 210541.png" alt="lasTest CLI - Test execution summary" loading="lazy">
+            <p class="lk-gallery-caption">Test execution with real-time results and summary</p>
+          </div>
+          <div class="lk-gallery-item">
+            <img src="Screenshot 2025-10-05 210508.png" alt="lasTest CLI - Running tests" loading="lazy">
+            <p class="lk-gallery-caption">Live test execution with detailed progress tracking</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Report Gallery Section -->
+    <section class="lk-report-gallery">
+      <div class="lk-container">
+        <h2>Interactive HTML Reports</h2>
+        <p class="lk-gallery-intro">
+          Beautiful, tabbed reports with visual comparisons, test results, and step-by-step execution details
+        </p>
+        <div class="lk-gallery-grid">
+          <div class="lk-gallery-item">
+            <img src="Opera Snapshot_2025-10-05_210406_report.html.png" alt="lasTest Report - Test Results Overview" loading="lazy">
+            <p class="lk-gallery-caption">Test results overview with pass/fail status for each route</p>
+          </div>
+          <div class="lk-gallery-item">
+            <img src="Opera Snapshot_2025-10-05_210420_report.html.png" alt="lasTest Report - Step-by-Step Comparison" loading="lazy">
+            <p class="lk-gallery-caption">Side-by-side step-by-step execution comparison</p>
+          </div>
+          <div class="lk-gallery-item">
+            <img src="Opera Snapshot_2025-10-05_210646_report.html.png" alt="lasTest Report - Visual Comparison" loading="lazy">
+            <p class="lk-gallery-caption">Detailed visual comparison with pixel difference tracking</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Providers Section -->
+    <section class="lk-ai-providers">
+      <div class="lk-container">
+        <h2>Pick Your AI Provider</h2>
+        <p class="lk-ai-intro">
+          Works with what you already have. No extra costs.
+        </p>
+        <div class="lk-ai-grid">
+          <div class="lk-ai-card">
+            <h3>Claude Pro/Max</h3>
+            <div class="lk-ai-price">$20-200/mo</div>
+            <p class="lk-ai-desc">Included with your Claude Pro or Max subscription</p>
+            <ul class="lk-ai-features">
+              <li>
+                <svg fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+                </svg>
+                CLI authentication
+              </li>
+              <li>
+                <svg fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+                </svg>
+                Unlimited usage within plan
+              </li>
+              <li>
+                <svg fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+                </svg>
+                One-time global setup
+              </li>
+            </ul>
+            <div class="lk-ai-setup">
+              <code>npm install -g @anthropic-ai/claude-code</code>
+              <code>claude login</code>
+              <code>npx @dexilion/lastest init --ai claude-subscription</code>
+            </div>
+          </div>
+
+          <div class="lk-ai-card">
+            <h3>GitHub Copilot</h3>
+            <div class="lk-ai-price">$10-19/mo</div>
+            <p class="lk-ai-desc">Included with your Copilot subscription</p>
+            <ul class="lk-ai-features">
+              <li>
+                <svg fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+                </svg>
+                CLI authentication
+              </li>
+              <li>
+                <svg fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+                </svg>
+                Pro, Business, or Enterprise
+              </li>
+              <li>
+                <svg fill="currentColor" viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                  <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+                </svg>
+                Requires Node.js 22+
+              </li>
+            </ul>
+            <div class="lk-ai-setup">
+              <code>npm install -g @github/copilot</code>
+              <code>copilot</code>
+              <code>npx @dexilion/lastest init --ai copilot-subscription</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Framework Support Section -->
+    <section class="lk-framework-support">
+      <div class="lk-container">
+        <h2>What It Supports</h2>
+        <p class="lk-framework-intro">
+          Automatically detects routes from common frameworks:
+        </p>
+        <div class="lk-framework-grid">
+          <div class="lk-framework-item">
+            <svg class="lk-framework-icon" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+            </svg>
+            <span>Next.js (App & Pages Router)</span>
+          </div>
+          <div class="lk-framework-item">
+            <svg class="lk-framework-icon" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+            </svg>
+            <span>React Router v6+</span>
+          </div>
+          <div class="lk-framework-item">
+            <svg class="lk-framework-icon" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+            </svg>
+            <span>Vue Router v4+</span>
+          </div>
+          <div class="lk-framework-item">
+            <svg class="lk-framework-icon" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-1 0A7 7 0 1 0 1 8a7 7 0 0 0 14 0z"/>
+            </svg>
+            <span>Generic HTML/Static Sites</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="lk-cta">
+      <div class="lk-container">
+        <h2>Try It Out</h2>
+        <p>
+          Weekend project that solves a real problem. Free, open-source, rough edges included.
+        </p>
+        <div class="lk-cta-actions">
+          <a href="https://github.com/dexilion-team/lastest" target="_blank" rel="noopener noreferrer" class="lk-cta-button lk-cta-primary">
+            <svg fill="currentColor" viewBox="0 0 16 16" width="20" height="20">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            View on GitHub
+          </a>
+          <a href="https://dexilion.com/#contact" class="lk-cta-button lk-cta-secondary">
+            <svg fill="currentColor" viewBox="0 0 16 16" width="20" height="20">
+              <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+            </svg>
+            Need Help?
+          </a>
+        </div>
+        <div class="lk-install-command-footer">
+          <code>npx @dexilion/lastest init</code>
+        </div>
+        <p class="lk-cta-subtitle">
+          Built by a dev, for devs. Good enough for side projects. Let me know if you try it.
+        </p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
