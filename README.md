@@ -25,6 +25,8 @@
 
 Automatically scans your codebase, generates Playwright tests using AI, and runs visual regression tests comparing your live and development environments. Get comprehensive reports with side-by-side screenshots and visual diffs. Perfect for vibe-coding.
 
+![lasTest Demo](docs/lastestvideo.gif)
+
 ## ✨ Features
 
 - ⏱️ **30s Frontend PR Testing** - Complete visual regression testing from install to report in under 30 seconds
