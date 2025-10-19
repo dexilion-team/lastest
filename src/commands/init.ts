@@ -12,7 +12,7 @@ import { TestRunner } from '../runner';
 import { ReportGenerator } from '../reporter';
 import { ClaudeSubscriptionClient } from '../ai/claude-subscription';
 import { CopilotSubscriptionClient } from '../ai/copilot-subscription';
-import { Config } from '../types';
+import { Config, RouteInfo } from '../types';
 import { checkMCPReady } from '../utils/mcp-helper';
 
 const execAsync = promisify(exec);
@@ -59,7 +59,7 @@ export async function initCommand(options: InitOptions) {
   ErrorLogger.setConfig(config);
 
   // Step 3: Scan codebase for routes (skip for recording mode)
-  let routes: any[] = [];
+  let routes: RouteInfo[] = [];
   if (config.testGenerationMode !== 'record') {
     Logger.newLine();
     Logger.step('Scanning codebase for routes...');

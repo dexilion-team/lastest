@@ -17,6 +17,27 @@ export interface RecordingConfig {
   outputDir: string;
 }
 
+interface RecordedEvent {
+  selector?: string;
+  value?: string;
+  timestamp: number;
+  x?: number;
+  y?: number;
+  key?: string;
+  ctrlKey?: boolean;
+  shiftKey?: boolean;
+  altKey?: boolean;
+}
+
+interface RecordedEvents {
+  click: RecordedEvent | null;
+  input: RecordedEvent | null;
+  select: RecordedEvent | null;
+  scroll: RecordedEvent | null;
+  hover: RecordedEvent | null;
+  keyPress: RecordedEvent | null;
+}
+
 export class TestRecorder {
   private browser: Browser | null = null;
   private page: Page | null = null;
@@ -194,7 +215,7 @@ export class TestRecorder {
 
       try {
         // Get recorded events from page context
-        const events: any = await this.page.evaluate(`
+        const events = await this.page.evaluate(`
           (function() {
             const events = {
               click: window.__recordedClick,
@@ -215,39 +236,39 @@ export class TestRecorder {
 
             return events;
           })()
-        `);
+        `) as RecordedEvents;
 
         // Process events
-        if (events.click) {
+        if (events.click && events.click.selector) {
           Logger.info(`✓ Click: ${events.click.selector}`);
           this.tracker.recordClick(events.click.selector);
         }
 
-        if (events.input) {
+        if (events.input && events.input.selector && events.input.value) {
           Logger.info(`✓ Fill: ${events.input.selector} = "${events.input.value}"`);
           this.tracker.recordFill(events.input.selector, events.input.value);
         }
 
-        if (events.select) {
+        if (events.select && events.select.selector && events.select.value) {
           Logger.info(`✓ Select: ${events.select.selector} = "${events.select.value}"`);
           this.tracker.recordSelect(events.select.selector, events.select.value);
         }
 
-        if (events.scroll) {
+        if (events.scroll && events.scroll.x !== undefined && events.scroll.y !== undefined) {
           this.tracker.recordScroll(events.scroll.x, events.scroll.y);
         }
 
-        if (events.hover) {
+        if (events.hover && events.hover.selector) {
           this.tracker.recordHover(events.hover.selector);
         }
 
         // Check for screenshot hotkey
-        if (events.keyPress) {
+        if (events.keyPress && events.keyPress.key) {
           const { key, ctrlKey, shiftKey } = events.keyPress;
           const hotkey = this.config.screenshotHotkey.toLowerCase();
 
           // Parse hotkey (e.g., "Control+Shift+KeyS")
-          if (this.matchesHotkey(key, ctrlKey, shiftKey, false, hotkey)) {
+          if (this.matchesHotkey(key, ctrlKey || false, shiftKey || false, false, hotkey)) {
             await this.takeManualScreenshot();
           }
         }

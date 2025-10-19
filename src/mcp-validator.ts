@@ -82,7 +82,7 @@ export class MCPValidator {
    */
   private async verifySelectors(
     selectors: string[],
-    pageUrl: string
+    _pageUrl: string
   ): Promise<SelectorValidation> {
     if (selectors.length === 0) {
       return { valid: true, invalidSelectors: [], validSelectors: [] };
@@ -93,42 +93,44 @@ export class MCPValidator {
       // This is a placeholder - actual implementation would use MCP tools via Claude Code
       // For now, we'll use a Python script that can be executed via mcp__ide__executeCode
 
-      const validationScript = `
-from playwright.sync_api import sync_playwright
-
-def validate_selectors():
-    selectors = ${JSON.stringify(selectors)}
-    url = "${pageUrl}"
-    results = []
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url, wait_until='networkidle', timeout=30000)
-
-        for selector in selectors:
-            try:
-                element = page.locator(selector)
-                count = element.count()
-                results.append({
-                    'selector': selector,
-                    'exists': count > 0,
-                    'count': count
-                })
-            except Exception as e:
-                results.append({
-                    'selector': selector,
-                    'exists': False,
-                    'error': str(e)
-                })
-
-        browser.close()
-
-    return results
-
-results = validate_selectors()
-print(results)
-`;
+      // TODO: Implement actual MCP-based validation
+      // Example validation script structure:
+      // const validationScript = `
+      // from playwright.sync_api import sync_playwright
+      //
+      // def validate_selectors():
+      //     selectors = ${JSON.stringify(selectors)}
+      //     url = "${_pageUrl}"
+      //     results = []
+      //
+      //     with sync_playwright() as p:
+      //         browser = p.chromium.launch(headless=True)
+      //         page = browser.new_page()
+      //         page.goto(url, wait_until='networkidle', timeout=30000)
+      //
+      //         for selector in selectors:
+      //             try:
+      //                 element = page.locator(selector)
+      //                 count = element.count()
+      //                 results.append({
+      //                     'selector': selector,
+      //                     'exists': count > 0,
+      //                     'count': count
+      //                 })
+      //             except Exception as e:
+      //                 results.append({
+      //                     'selector': selector,
+      //                     'exists': False,
+      //                     'error': str(e)
+      //                 })
+      //
+      //         browser.close()
+      //
+      //     return results
+      //
+      // results = validate_selectors()
+      // print(results)
+      // `;
 
       // Note: This would ideally use mcp__ide__executeCode tool
       // For now, we'll mark all selectors as valid and log a warning
@@ -154,59 +156,61 @@ print(results)
   /**
    * Discover additional interactions on the page
    */
-  private async discoverInteractions(pageUrl: string): Promise<Interaction[]> {
+  private async discoverInteractions(_pageUrl: string): Promise<Interaction[]> {
     try {
       // Use MCP to discover interactive elements
       // This would use Playwright MCP's accessibility tree inspection
 
-      const discoveryScript = `
-from playwright.sync_api import sync_playwright
-
-def discover_interactions():
-    url = "${pageUrl}"
-    interactions = []
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url, wait_until='networkidle', timeout=30000)
-
-        # Find buttons
-        buttons = page.locator('button, [role="button"]').all()
-        for i, btn in enumerate(buttons[:5]):  # Limit to first 5
-            text = btn.text_content() or btn.get_attribute('aria-label') or f"Button {i+1}"
-            interactions.append({
-                'type': 'button',
-                'description': f"Button: {text}",
-                'selector': f'button:nth-child({i+1})'
-            })
-
-        # Find forms
-        forms = page.locator('form').all()
-        for i, form in enumerate(forms[:3]):  # Limit to first 3
-            interactions.append({
-                'type': 'form',
-                'description': f"Form {i+1}",
-                'selector': f'form:nth-child({i+1})'
-            })
-
-        # Find links
-        links = page.locator('a[href]').all()
-        for i, link in enumerate(links[:5]):  # Limit to first 5
-            text = link.text_content() or 'Link'
-            interactions.append({
-                'type': 'link',
-                'description': f"Link: {text}",
-                'selector': f'a:nth-child({i+1})'
-            })
-
-        browser.close()
-
-    return interactions
-
-interactions = discover_interactions()
-print(interactions)
-`;
+      // TODO: Implement actual MCP-based discovery
+      // Example discovery script structure:
+      // const discoveryScript = `
+      // from playwright.sync_api import sync_playwright
+      //
+      // def discover_interactions():
+      //     url = "${_pageUrl}"
+      //     interactions = []
+      //
+      //     with sync_playwright() as p:
+      //         browser = p.chromium.launch(headless=True)
+      //         page = browser.new_page()
+      //         page.goto(url, wait_until='networkidle', timeout=30000)
+      //
+      //         # Find buttons
+      //         buttons = page.locator('button, [role="button"]').all()
+      //         for i, btn in enumerate(buttons[:5]):  # Limit to first 5
+      //             text = btn.text_content() or btn.get_attribute('aria-label') or f"Button {i+1}"
+      //             interactions.append({
+      //                 'type': 'button',
+      //                 'description': f"Button: {text}",
+      //                 'selector': f'button:nth-child({i+1})'
+      //             })
+      //
+      //         # Find forms
+      //         forms = page.locator('form').all()
+      //         for i, form in enumerate(forms[:3]):  # Limit to first 3
+      //             interactions.append({
+      //                 'type': 'form',
+      //                 'description': f"Form {i+1}",
+      //                 'selector': f'form:nth-child({i+1})'
+      //             })
+      //
+      //         # Find links
+      //         links = page.locator('a[href]').all()
+      //         for i, link in enumerate(links[:5]):  # Limit to first 5
+      //             text = link.text_content() or 'Link'
+      //             interactions.append({
+      //                 'type': 'link',
+      //                 'description': f"Link: {text}",
+      //                 'selector': f'a:nth-child({i+1})'
+      //             })
+      //
+      //         browser.close()
+      //
+      //     return interactions
+      //
+      // interactions = discover_interactions()
+      // print(interactions)
+      // `;
 
       // TODO: Implement actual MCP-based discovery
       // For MVP, we'll return empty array
@@ -221,7 +225,7 @@ print(interactions)
   /**
    * Get page structure for AI context
    */
-  private async getPageStructure(pageUrl: string): Promise<string> {
+  private async getPageStructure(_pageUrl: string): Promise<string> {
     try {
       // Use MCP to get page structure overview
       // This would use Playwright MCP's accessibility snapshot
