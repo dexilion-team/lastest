@@ -6,6 +6,7 @@
 import { chromium, Browser, Page, BrowserContext } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as readline from 'readline';
 import { InteractionTracker, RecordedInteraction } from './utils/interaction-tracker';
 import { getInjectedSelectorScript } from './utils/selector-generator';
 import { Logger } from './utils/logger';
@@ -48,6 +49,7 @@ export class TestRecorder {
   private screenshotCount = 0;
   private navigationCount = 0;
   private isRecording = false;
+  private keyboardListener: ((str: string, key: { name: string; ctrl: boolean }) => void) | null = null;
 
   constructor(config: RecordingConfig) {
     this.config = config;
@@ -87,6 +89,9 @@ export class TestRecorder {
     // Setup event listeners
     await this.setupEventListeners();
 
+    // Setup keyboard failsafe (Ctrl+Q)
+    this.setupKeyboardFailsafe();
+
     // Display instructions
     this.displayInstructions();
 
@@ -95,8 +100,11 @@ export class TestRecorder {
     await this.page.goto(this.config.startUrl);
     this.tracker.recordNavigation(this.config.startUrl);
 
-    // Wait for browser to close
+    // Wait for browser to close or Ctrl+Q
     await this.waitForClose();
+
+    // Cleanup keyboard listener
+    this.cleanupKeyboardListener();
 
     // Generate test code
     const testCase = await this.generateTest();
@@ -347,6 +355,68 @@ export class TestRecorder {
   }
 
   /**
+   * Setup keyboard failsafe (Ctrl+R) to stop recording
+   */
+  private setupKeyboardFailsafe(): void {
+    // Setup readline for keyboard input
+    readline.emitKeypressEvents(process.stdin);
+
+    // Enable raw mode if stdin is a TTY
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+    }
+
+    // Resume stdin to start reading input
+    process.stdin.resume();
+
+    // Listen for Ctrl+R
+    this.keyboardListener = (_str: string, key: { name: string; ctrl: boolean }) => {
+      if (key && key.ctrl && key.name === 'r') {
+        Logger.info('');
+        Logger.info('⏹️  Ctrl+R detected - stopping recording...');
+        this.stopRecording();
+      }
+    };
+
+    process.stdin.on('keypress', this.keyboardListener);
+  }
+
+  /**
+   * Cleanup keyboard listener
+   */
+  private cleanupKeyboardListener(): void {
+    if (this.keyboardListener) {
+      process.stdin.off('keypress', this.keyboardListener);
+      this.keyboardListener = null;
+    }
+
+    // Pause stdin
+    process.stdin.pause();
+
+    // Restore terminal to normal mode
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(false);
+    }
+  }
+
+  /**
+   * Stop recording and close browser
+   */
+  private async stopRecording(): Promise<void> {
+    if (!this.isRecording) return;
+
+    this.isRecording = false;
+
+    if (this.browser) {
+      try {
+        await this.browser.close();
+      } catch (error) {
+        // Browser might already be closed
+      }
+    }
+  }
+
+  /**
    * Displays recording instructions
    */
   private displayInstructions(): void {
@@ -357,6 +427,7 @@ export class TestRecorder {
     Logger.info('💡 Interact with the browser naturally');
     Logger.info(`📸 Press ${this.config.screenshotHotkey} to take a screenshot`);
     Logger.info('🛑 Close the browser window when finished');
+    Logger.highlight('⚡ Press Ctrl+R in terminal to stop recording');
     Logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     Logger.info('');
   }
@@ -383,7 +454,10 @@ export class TestRecorder {
   private generateTestCode(interactions: RecordedInteraction[]): string {
     const lines: string[] = [];
 
-    lines.push('export default async function recordedTest({ page, baseUrl, screenshotPath, stepLogger }) {');
+    lines.push('exports.test = async function recordedTest(page, baseUrl, screenshotPath, stepLogger) {');
+
+    // Track screenshot counter for unique filenames
+    let screenshotCounter = 0;
 
     for (let i = 0; i < interactions.length; i++) {
       const interaction = interactions[i];
@@ -399,7 +473,10 @@ export class TestRecorder {
             lines.push(`  stepLogger.log('Navigating to ${interaction.url}');`);
             lines.push(`  await page.goto('${interaction.url}');`);
           }
-          lines.push(`  await page.waitForLoadState('networkidle');`);
+          lines.push(`  await page.waitForLoadState('domcontentloaded');`);
+          // Take screenshot after navigation (auto-screenshot during playback)
+          screenshotCounter++;
+          lines.push(`  await page.screenshot({ path: screenshotPath.replace('.png', '-screenshot-${screenshotCounter}.png'), fullPage: true });`);
           lines.push('');
           break;
 
@@ -442,8 +519,9 @@ export class TestRecorder {
           break;
 
         case 'screenshot':
+          screenshotCounter++;
           lines.push(`  stepLogger.log('Taking screenshot: ${interaction.screenshotName}');`);
-          lines.push(`  await page.screenshot({ path: screenshotPath, fullPage: true });`);
+          lines.push(`  await page.screenshot({ path: screenshotPath.replace('.png', '-screenshot-${screenshotCounter}.png'), fullPage: true });`);
           lines.push('');
           break;
       }
@@ -452,11 +530,12 @@ export class TestRecorder {
     // Always end with final screenshot if not already there
     const lastInteraction = interactions[interactions.length - 1];
     if (!lastInteraction || lastInteraction.type !== 'screenshot') {
+      screenshotCounter++;
       lines.push(`  stepLogger.log('Taking final screenshot');`);
-      lines.push(`  await page.screenshot({ path: screenshotPath, fullPage: true });`);
+      lines.push(`  await page.screenshot({ path: screenshotPath.replace('.png', '-screenshot-${screenshotCounter}.png'), fullPage: true });`);
     }
 
-    lines.push('}');
+    lines.push('};');
 
     return lines.join('\n');
   }

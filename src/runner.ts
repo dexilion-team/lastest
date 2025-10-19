@@ -325,7 +325,7 @@ export class TestRunner {
       ) => Promise<void>;
 
       interface SandboxModule {
-        exports: { test?: TestFunction };
+        exports: { test?: TestFunction; default?: TestFunction };
       }
 
       interface SandboxContext {
@@ -335,7 +335,7 @@ export class TestRunner {
         console: typeof console;
         stepLogger: { log: (message: string) => void };
         require: (moduleName: string) => unknown;
-        exports: { test?: TestFunction };
+        exports: { test?: TestFunction; default?: TestFunction };
         module: SandboxModule;
       }
 
@@ -376,8 +376,8 @@ export class TestRunner {
       // Execute the transpiled code
       vm.runInContext(jsCode, context);
 
-      // Get the exported test function
-      const testFunction = sandbox.module.exports.test || sandbox.exports.test;
+      // Get the exported test function (supports both named 'test' export and default export)
+      const testFunction = sandbox.module.exports.test || sandbox.exports.test || sandbox.module.exports.default;
 
       if (typeof testFunction !== 'function') {
         throw new Error('AI-generated test does not export a "test" function');

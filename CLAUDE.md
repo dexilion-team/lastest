@@ -252,7 +252,7 @@ src/
 - Enabled via `testGenerationMode: 'template'` in config
 - Best for basic screenshot comparison without interactions
 
-**MCP Mode (NEW):**
+**MCP Mode:**
 - Uses `MCPGenerator` class (AI + MCP validation)
 - Combines AI code generation with real-time MCP validation
 - Workflow:
@@ -276,24 +276,69 @@ src/
   - AI provider (Claude or Copilot) for code generation
 - Enabled via `testGenerationMode: 'mcp'` in config
 
+**Recording Mode:**
+- Uses `TestRecorder` class (interactive browser recording)
+- Records user interactions in headed Chromium browser
+- No AI dependency - full manual control
+- Workflow:
+  1. Launches headed Chromium browser
+  2. User interacts with application naturally
+  3. All interactions captured (clicks, typing, scrolls, hovers, navigation)
+  4. Auto-screenshots after each navigation
+  5. Manual screenshots via hotkey (default: Ctrl+Shift+S)
+  6. Recording stops when browser closes or Ctrl+R pressed in terminal
+  7. Generates TypeScript test file from recorded interactions
+- Benefits:
+  - Complete control over test interactions
+  - No AI hallucination or selector guessing
+  - Visual feedback during recording
+  - Perfect for complex workflows
+  - No authentication or API costs
+- Trade-offs:
+  - Manual effort required
+  - Slower than AI generation
+  - Single test per recording session
+  - Not route-based (records entire user journey)
+- Requirements:
+  - Playwright Chromium browser
+  - Starting URL for recording session
+  - Interactive terminal (TTY)
+- Configuration:
+  - `testGenerationMode: 'record'` in config
+  - `recordingStartUrl`: Starting URL for recording
+  - `screenshotHotkey`: Keyboard shortcut for manual screenshots (default: 'Control+Shift+KeyS')
+- Controls:
+  - **Ctrl+Shift+S** (or configured hotkey): Take manual screenshot
+  - **Ctrl+R** (in terminal): Stop recording
+  - **Close browser**: Stop recording
+- Implementation:
+  - `src/recorder.ts`: Main recording engine
+  - `src/utils/selector-generator.ts`: Intelligent selector generation (data-testid > id > aria-label > name > text > CSS path)
+  - `src/utils/interaction-tracker.ts`: Event deduplication and tracking
+  - Injects browser-side JavaScript for event capture
+  - Polls events from page context to Node.js
+  - Generates Playwright test code with `stepLogger` integration
+
 Implementation in `generator.ts`:
 - Constructor checks `config.testGenerationMode`
 - If 'template', instantiates `TemplateGenerator`
 - If 'mcp', instantiates `MCPGenerator`
+- If 'record', instantiates `TestRecorder`
 - If 'ai' (default), instantiates appropriate AI client
 - `generateTests()` delegates to appropriate generator
 
 **Mode Comparison:**
 
-| Feature | AI Mode | Template Mode | MCP Mode |
-|---------|---------|---------------|----------|
-| Speed | Fast | Fastest | Slow |
-| Cost | AI tokens | Free | AI tokens (2x) |
-| Selector validation | No | N/A | Yes |
-| Interaction discovery | No | No | Yes |
-| Reliability | Medium | Low | High |
-| Re-runnable tests | Yes | Yes | Yes |
-| Setup complexity | Medium | Low | High |
+| Feature | AI Mode | Template Mode | MCP Mode | Recording Mode |
+|---------|---------|---------------|----------|----------------|
+| Speed | Fast | Fastest | Slow | Manual |
+| Cost | AI tokens | Free | AI tokens (2x) | Free |
+| Selector validation | No | N/A | Yes | Yes (real-time) |
+| Interaction discovery | No | No | Yes | Manual |
+| Reliability | Medium | Low | High | Highest |
+| Re-runnable tests | Yes | Yes | Yes | Yes |
+| Setup complexity | Medium | Low | High | Low |
+| User control | Low | N/A | Low | Full |
 
 ### AI Route Detection
 
@@ -477,3 +522,15 @@ Errors are:
 - `src/playwright-reporter.ts:107-498` - Two-column HTML template with side-by-side comparison
 - `src/playwright-reporter.ts:450-469` - Step rendering in parallel for both environments
 - `src/reporter.ts:617` - Tab label in main report
+
+### Interactive Recording Mode
+- `src/recorder.ts` - Main recording engine (TestRecorder class)
+- `src/recorder.ts:65-114` - `startRecording()` method with browser launch and keyboard failsafe
+- `src/recorder.ts:113-204` - `setupEventListeners()` injects browser-side event capture
+- `src/recorder.ts:209-279` - `startEventPolling()` polls events from page context
+- `src/recorder.ts:357-382` - `setupKeyboardFailsafe()` listens for Ctrl+R in terminal (includes stdin.resume())
+- `src/recorder.ts:383-411` - `generateTestCode()` converts interactions to Playwright code
+- `src/utils/selector-generator.ts` - Intelligent selector generation (priority: data-testid > id > aria-label > name > text > CSS path)
+- `src/utils/interaction-tracker.ts` - Event deduplication and filtering
+- `src/utils/interaction-tracker.ts:recordFill()` - Debounces rapid typing in same field
+- `src/utils/interaction-tracker.ts:getFilteredInteractions()` - Removes redundant hovers and scrolls
