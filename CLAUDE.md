@@ -81,7 +81,7 @@ Three files control behavior (all in current working directory):
    - Created by `ConfigManager.save()`
    - Loaded by `ConfigManager.load()`
    - New configuration options:
-     - `testGenerationMode`: 'ai' | 'template' (default: 'ai')
+     - `testGenerationMode`: 'ai' | 'template' | 'mcp' (default: 'ai')
      - `useAIRouteDetection`: boolean (default: false)
      - `customTestInstructions`: string (optional)
 
@@ -194,9 +194,13 @@ src/
 │   ├── error-logger.ts          # Error capture and email notification support
 │   └── step-tracker.ts          # Test step tracking with automatic timing
 ├── scanner.ts                   # Framework-specific route detection + AI detection
-├── generator.ts                 # Test generation orchestrator (AI or template mode)
+├── generator.ts                 # Test generation orchestrator (AI, template, or MCP mode)
 ├── template-generator.ts        # Template-based test generator (no AI)
+├── mcp-generator.ts             # MCP-enhanced test generator (AI + MCP validation)
+├── mcp-validator.ts             # MCP validation and interaction discovery
 ├── test-cache.ts                # Test persistence layer
+├── utils/
+│   └── mcp-helper.ts            # MCP installation checks
 ├── runner.ts                    # Playwright test executor with VM sandbox
 ├── differ.ts                    # Pixelmatch screenshot comparison
 ├── reporter.ts                  # Tabbed HTML report generator
@@ -238,6 +242,7 @@ src/
 - AI clients accept Config in constructor to access custom instructions
 - Prompts are enhanced with custom instructions if provided
 - Requires authentication and AI provider setup
+- Fast generation, generates re-runnable TypeScript test files
 
 **Template Mode:**
 - Uses `TemplateGenerator` class (no AI dependency)
@@ -245,12 +250,50 @@ src/
 - Skips AI setup verification in `init.ts`
 - Faster generation, no costs, no authentication
 - Enabled via `testGenerationMode: 'template'` in config
+- Best for basic screenshot comparison without interactions
+
+**MCP Mode (NEW):**
+- Uses `MCPGenerator` class (AI + MCP validation)
+- Combines AI code generation with real-time MCP validation
+- Workflow:
+  1. AI generates initial test code (same as AI mode)
+  2. MCP validates selectors against live page via Playwright MCP tools
+  3. MCP discovers additional interactions (buttons, forms, links)
+  4. AI refines test based on MCP feedback
+  5. Saves validated TypeScript test file for re-runs
+- Benefits:
+  - Eliminates selector guessing - validates selectors exist
+  - Discovers interactions AI might miss
+  - Reduces fallback cases
+  - Higher test quality, lower failure rate
+- Trade-offs:
+  - Slower generation (AI + validation + refinement)
+  - Requires Claude CLI and Playwright MCP server
+  - Best for critical routes where reliability > speed
+- Requirements:
+  - `claude` CLI installed and authenticated
+  - Playwright MCP installed: `claude mcp add @playwright/mcp@latest`
+  - AI provider (Claude or Copilot) for code generation
+- Enabled via `testGenerationMode: 'mcp'` in config
 
 Implementation in `generator.ts`:
 - Constructor checks `config.testGenerationMode`
 - If 'template', instantiates `TemplateGenerator`
+- If 'mcp', instantiates `MCPGenerator`
 - If 'ai' (default), instantiates appropriate AI client
 - `generateTests()` delegates to appropriate generator
+
+**Mode Comparison:**
+
+| Feature | AI Mode | Template Mode | MCP Mode |
+|---------|---------|---------------|----------|
+| Speed | Fast | Fastest | Slow |
+| Cost | AI tokens | Free | AI tokens (2x) |
+| Selector validation | No | N/A | Yes |
+| Interaction discovery | No | No | Yes |
+| Reliability | Medium | Low | High |
+| Re-runnable tests | Yes | Yes | Yes |
+| Setup complexity | Medium | Low | High |
 
 ### AI Route Detection
 
@@ -309,6 +352,42 @@ node dist/cli.js init
 - Test authentication: `testConnection()` method in AI client
 - Enable verbose logging by adding console.log in `generateTest()`
 - For Copilot: Ensure `--allow-all-tools` flag is present in command
+
+### MCP Mode Implementation Details
+
+**MCPValidator** (`src/mcp-validator.ts`):
+- Validates AI-generated test selectors against real pages
+- Discovers additional interactions (buttons, forms, links)
+- Returns `ValidationResult` with selector validation and suggestions
+
+Key methods:
+```typescript
+async validateTest(route, generatedCode, baseUrl): Promise<ValidationResult>
+async verifySelectors(selectors, pageUrl): Promise<SelectorValidation>
+async discoverInteractions(pageUrl): Promise<Interaction[]>
+```
+
+**MCPGenerator** (`src/mcp-generator.ts`):
+- Orchestrates AI generation + MCP validation + AI refinement
+- Flow:
+  1. Call `aiClient.generateTest(route)` - initial code
+  2. Call `mcpValidator.validateTest(route, code, liveUrl)` - validate
+  3. If issues found, call `aiClient.refineTest(route, code, validation)` - refine
+  4. Save final TypeScript file
+
+**AI Client Extensions**:
+Both `ClaudeSubscriptionClient` and `CopilotSubscriptionClient` now implement:
+```typescript
+async refineTest(route, originalCode, validation): Promise<string>
+```
+- Takes original code and MCP validation feedback
+- Generates refined test fixing selectors and adding interactions
+- Falls back to original code on error
+
+**MCP Helper** (`src/utils/mcp-helper.ts`):
+- Checks if Claude CLI is available
+- Checks if Playwright MCP is installed
+- Provides installation instructions
 
 ## Reporting Architecture
 

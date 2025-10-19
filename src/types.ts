@@ -13,7 +13,9 @@ export interface Config {
   maxConcurrency?: number;
   useAIRouteDetection?: boolean;
   customTestInstructions?: string;
-  testGenerationMode?: 'ai' | 'template';
+  testGenerationMode?: 'ai' | 'template' | 'mcp' | 'record';
+  recordingStartUrl?: string;
+  screenshotHotkey?: string;
 }
 
 export interface RouteInfo {
@@ -25,10 +27,14 @@ export interface RouteInfo {
 }
 
 export interface TestCase {
-  name: string;
+  name?: string;
   route: string;
-  code: string;
-  filePath: string;
+  path?: string;
+  code?: string;
+  testCode?: string;
+  filePath?: string;
+  type?: string;
+  generatedAt?: string;
   routerType?: 'hash' | 'browser';
 }
 

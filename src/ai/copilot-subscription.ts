@@ -1,4 +1,5 @@
 import { RouteInfo, Config } from '../types';
+import { ValidationResult } from '../mcp-validator';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { Logger } from '../utils/logger';
@@ -190,6 +191,93 @@ export async function test(page: Page, baseUrl: string, screenshotPath: string, 
   private escapePrompt(prompt: string): string {
     // Escape double quotes for shell command
     return prompt.replace(/"/g, '\\"').replace(/\n/g, ' ');
+  }
+
+  async refineTest(
+    route: RouteInfo,
+    originalCode: string,
+    validation: ValidationResult
+  ): Promise<string> {
+    await this.checkCopilotCLI();
+
+    const prompt = this.buildRefinePrompt(route, originalCode, validation);
+
+    try {
+      const command = `copilot -p "${this.escapePrompt(prompt)}" --allow-all-tools --deny-tool write`;
+
+      const { stdout } = await execAsync(command, {
+        maxBuffer: 1024 * 1024 * 10,
+        timeout: 60000,
+      });
+
+      if (!stdout || stdout.trim().length === 0) {
+        Logger.warn('Copilot returned empty refinement, using original code');
+        return originalCode;
+      }
+
+      const code = this.extractCode(stdout);
+
+      if (!code || code.trim().length === 0) {
+        Logger.warn('No code in refinement response, using original code');
+        return originalCode;
+      }
+
+      return code;
+    } catch (error) {
+      Logger.warn(`Test refinement failed: ${(error as Error).message}, using original code`);
+      return originalCode;
+    }
+  }
+
+  private buildRefinePrompt(
+    route: RouteInfo,
+    originalCode: string,
+    validation: ValidationResult
+  ): string {
+    let feedbackSection = '';
+
+    if (validation.invalidSelectors.length > 0) {
+      feedbackSection += `\nINVALID SELECTORS:\n`;
+      validation.invalidSelectors.forEach((selector) => {
+        feedbackSection += `- "${selector}" not found on page\n`;
+      });
+    }
+
+    if (validation.validationErrors.length > 0) {
+      feedbackSection += `\nVALIDATION ERRORS:\n`;
+      validation.validationErrors.forEach((error) => {
+        feedbackSection += `- ${error}\n`;
+      });
+    }
+
+    if (validation.suggestedInteractions.length > 0) {
+      feedbackSection += `\nDISCOVERED INTERACTIONS:\n`;
+      validation.suggestedInteractions.forEach((interaction) => {
+        feedbackSection += `- ${interaction.type}: ${interaction.description} (selector: ${interaction.selector})\n`;
+      });
+    }
+
+    if (validation.pageStructure) {
+      feedbackSection += `\nPAGE STRUCTURE:\n${validation.pageStructure}\n`;
+    }
+
+    return `Your generated test has been validated against the real page. Please refine it based on the feedback below.
+
+ORIGINAL TEST CODE:
+\`\`\`typescript
+${originalCode}
+\`\`\`
+
+VALIDATION FEEDBACK:${feedbackSection}
+
+Please update the test code to:
+1. Fix any invalid selectors
+2. Add interactions for discovered elements (if relevant)
+3. Keep the same export signature: export async function test(page, baseUrl, screenshotPath, stepLogger)
+4. Continue using stepLogger.log() for step tracking
+5. Keep the test simple and reliable
+
+Return ONLY the updated TypeScript code, no explanations.`;
   }
 
   private extractCode(text: string): string {

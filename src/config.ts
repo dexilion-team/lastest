@@ -32,6 +32,7 @@ export class ConfigManager {
       diffThreshold: 1,
       parallel: true,
       maxConcurrency: 5,
+      screenshotHotkey: 'Control+Shift+KeyS',
     };
   }
 }

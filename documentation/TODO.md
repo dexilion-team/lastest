@@ -1,19 +1,14 @@
 
-Marketing
-- lastest product page
-- 30 sec video
-- custom instructions video
-
 
 APP
-- npm publish
-- Playwright mcp integration
-- Entire prompt as config
+/c- Entire prompt as config
 
 Testing
-
+- Playwright mcp integration
+- stagehand
 
 Bug
+- dexilion.com//
 - Claude generated script should be a failed case:
 Could not click button 6: locator.click: Timeout 5000ms exceeded. Call log: [2m - waiting for locator('button').nth(5)[22m [2m - locator resolved to …[22m [2m - attempting click action[22m [2m 2 × waiting for element to be visible, enabled and stable[22m [2m - element is visible, enabled and stable[22m [2m - scrolling into view if needed[22m [2m - done scrolling[22m [2m - intercepts pointer events[22m [2m - retrying click action[22m [2m - waiting 20ms[22m [2m 2 × waiting for element to be visible, enabled and stable[22m [2m - element is not stable[22m [2m - retrying click action[22m [2m - waiting 100ms[22m [2m - waiting for element to be visible, enabled and stable[22m [2m - element is not stable[22m [2m 6 × retrying click action[22m [2m - waiting 500ms[22m [2m - waiting for element to be visible, enabled and stable[22m [2m - element is visible, enabled and stable[22m [2m - scrolling into view if needed[22m [2m - done scrolling[22m [2m - intercepts pointer events[22m [2m - retrying click action[22m [2m - waiting 500ms[22m
 Could not click button 7: locator.click: Timeout 5000ms exceeded. Call log: [2m - waiting for locator('button').nth(6)[22m [2m - locator resolved to Submit[22m [2m - attempting click action[22m [2m - waiting for element to be visible, enabled and stable[22m [2m - element is not stable[22m [2m - retrying click action[22m [2m - waiting for element to be visible, enabled and stable[22m [2m - element is visible, enabled and stable[22m [2m - scrolling into view if needed[22m [2m - done scrolling[22m [2m - element is outside of the viewport[22m [2m - retrying click action[22m [2m - waiting 20ms[22m [2m 2 × waiting for element to be visible, enabled and stable[22m [2m - element is not stable[22m [2m - retrying click action[22m [2m - waiting 100ms[22m [2m - waiting for element to be visible, enabled and stable[22m [2m - element is not stable[22m [2m 7 × retrying click action[22m [2m - waiting 500ms[22m [2m - waiting for element to be visible, enabled and stable[22m [2m - element is visible, enabled and stable[22m [2m - scrolling into view if needed[22m [2m - done scrolling[22m [2m - intercepts pointer events[22m [2m - retrying click action[22m [2m - waiting 500ms[22m

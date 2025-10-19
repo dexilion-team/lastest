@@ -4,6 +4,8 @@ import { Config, RouteInfo, TestCase } from './types';
 import { ClaudeSubscriptionClient } from './ai/claude-subscription';
 import { CopilotSubscriptionClient } from './ai/copilot-subscription';
 import { TemplateGenerator } from './template-generator';
+import { MCPGenerator } from './mcp-generator';
+import { TestRecorder } from './recorder';
 import { Logger } from './utils/logger';
 
 type AIClient = ClaudeSubscriptionClient | CopilotSubscriptionClient;
@@ -11,12 +13,24 @@ type AIClient = ClaudeSubscriptionClient | CopilotSubscriptionClient;
 export class TestGenerator {
   private aiClient?: AIClient;
   private templateGenerator?: TemplateGenerator;
+  private mcpGenerator?: MCPGenerator;
+  private recorder?: TestRecorder;
 
   constructor(private config: Config) {
     const mode = config.testGenerationMode || 'ai';
 
     if (mode === 'template') {
       this.templateGenerator = new TemplateGenerator(config);
+    } else if (mode === 'mcp') {
+      // MCP mode - uses AI + MCP validation
+      this.mcpGenerator = new MCPGenerator(config);
+    } else if (mode === 'record') {
+      // Recording mode - interactive browser recording
+      this.recorder = new TestRecorder({
+        startUrl: config.recordingStartUrl || config.liveUrl,
+        screenshotHotkey: config.screenshotHotkey || 'Control+Shift+KeyS',
+        outputDir: config.outputDir,
+      });
     } else {
       // AI mode
       switch (config.aiProvider) {
@@ -35,9 +49,21 @@ export class TestGenerator {
   }
 
   async generateTests(routes: RouteInfo[]): Promise<TestCase[]> {
+    // Use recorder if in recording mode
+    if (this.recorder) {
+      Logger.info('Starting interactive recording session...');
+      const recordedTest = await this.recorder.startRecording();
+      return [recordedTest];
+    }
+
     // Use template generator if in template mode
     if (this.templateGenerator) {
       return await this.templateGenerator.generateTests(routes);
+    }
+
+    // Use MCP generator if in MCP mode
+    if (this.mcpGenerator) {
+      return await this.mcpGenerator.generateTests(routes);
     }
 
     // Otherwise use AI generation

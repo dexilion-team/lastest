@@ -13,6 +13,7 @@ import { ReportGenerator } from '../reporter';
 import { ClaudeSubscriptionClient } from '../ai/claude-subscription';
 import { CopilotSubscriptionClient } from '../ai/copilot-subscription';
 import { Config } from '../types';
+import { checkMCPReady } from '../utils/mcp-helper';
 
 const execAsync = promisify(exec);
 
@@ -57,19 +58,25 @@ export async function initCommand(options: InitOptions) {
   // Set config for error logging
   ErrorLogger.setConfig(config);
 
-  // Step 3: Scan codebase for routes
-  Logger.newLine();
-  Logger.step('Scanning codebase for routes...');
-  const scanner = new Scanner(config.scanPath, config);
-  const routes = await scanner.scan();
-  Logger.success(`Found ${routes.length} routes to test`);
+  // Step 3: Scan codebase for routes (skip for recording mode)
+  let routes: any[] = [];
+  if (config.testGenerationMode !== 'record') {
+    Logger.newLine();
+    Logger.step('Scanning codebase for routes...');
+    const scanner = new Scanner(config.scanPath, config);
+    routes = await scanner.scan();
+    Logger.success(`Found ${routes.length} routes to test`);
+  }
 
-  // Step 4: Generate tests using AI
+  // Step 4: Generate tests
   Logger.newLine();
-  Logger.step('Generating tests using AI...');
+  const modeLabel = config.testGenerationMode === 'record' ? 'Recording' :
+                    config.testGenerationMode === 'template' ? 'Template' :
+                    config.testGenerationMode === 'mcp' ? 'MCP' : 'AI';
+  Logger.step(`Generating tests using ${modeLabel}...`);
   const generator = new TestGenerator(config);
   const tests = await generator.generateTests(routes);
-  Logger.success(`Generated ${tests.length} test cases`);
+  Logger.success(`Generated ${tests.length} test case${tests.length !== 1 ? 's' : ''}`);
 
   // Save generated tests to cache
   await TestCache.save(tests);
@@ -115,6 +122,24 @@ async function verifyAISetup(config: Config): Promise<boolean> {
   // Skip AI verification if using template mode
   if (config.testGenerationMode === 'template') {
     return true;
+  }
+
+  // For MCP mode, verify both AI and MCP are ready
+  if (config.testGenerationMode === 'mcp') {
+    const mcpStatus = await checkMCPReady();
+    if (!mcpStatus.ready) {
+      if (!mcpStatus.available) {
+        Logger.error('Claude CLI not available. MCP mode requires Claude Code.');
+        Logger.info('Install: npm install -g @anthropic-ai/claude-code');
+        return false;
+      }
+      if (!mcpStatus.installed) {
+        Logger.error('Playwright MCP not installed.');
+        Logger.info('Run: claude mcp add @playwright/mcp@latest');
+        return false;
+      }
+    }
+    Logger.success('MCP validation ready');
   }
 
   try {
@@ -174,8 +199,8 @@ async function checkAllDependencies(existingConfig?: Config): Promise<void> {
     }
   }
 
-  // Check AI CLI if using AI mode
-  if (existingConfig?.testGenerationMode !== 'template') {
+  // Check AI CLI if using AI or MCP mode
+  if (existingConfig?.testGenerationMode !== 'template' && existingConfig?.testGenerationMode !== 'record') {
     const aiProvider = existingConfig?.aiProvider || 'claude-subscription';
 
     if (aiProvider === 'claude-subscription') {
@@ -195,12 +220,26 @@ async function checkAllDependencies(existingConfig?: Config): Promise<void> {
         Logger.notInstalled('GitHub Copilot CLI');
       }
     }
+
+    // Check MCP if using MCP mode
+    if (existingConfig?.testGenerationMode === 'mcp') {
+      Logger.checking('Playwright MCP');
+      const mcpStatus = await checkMCPReady();
+      if (mcpStatus.ready) {
+        Logger.installed('Playwright MCP');
+      } else if (mcpStatus.available && !mcpStatus.installed) {
+        Logger.notInstalled('Playwright MCP');
+        Logger.dim('  Run: claude mcp add @playwright/mcp@latest');
+      } else {
+        Logger.notInstalled('Playwright MCP (requires Claude CLI)');
+      }
+    }
   }
 }
 
 async function ensureAIDependency(config: Config): Promise<void> {
-  // Skip if using template mode (no AI needed)
-  if (config.testGenerationMode === 'template') {
+  // Skip if using template or recording mode (no AI needed)
+  if (config.testGenerationMode === 'template' || config.testGenerationMode === 'record') {
     return;
   }
 
@@ -293,8 +332,16 @@ async function getConfigAnswers(options: InitOptions, existingConfig?: Config) {
           value: 'ai',
         },
         {
+          name: 'Recording - Interactive browser recording (no AI, full control)',
+          value: 'record',
+        },
+        {
           name: 'Template - Simple screenshot tests (no AI, faster)',
           value: 'template',
+        },
+        {
+          name: 'MCP-Enhanced - AI + real-time validation (most reliable, slower)',
+          value: 'mcp',
         },
       ],
       default: existingConfig?.testGenerationMode || 'ai',
@@ -313,27 +360,50 @@ async function getConfigAnswers(options: InitOptions, existingConfig?: Config) {
           value: 'copilot-subscription',
         },
       ],
-      when: (answers) => answers.testGenerationMode === 'ai',
+      when: (answers) => answers.testGenerationMode === 'ai' || answers.testGenerationMode === 'mcp',
       default: options.ai || existingConfig?.aiProvider || 'claude-subscription',
     },
     {
       type: 'confirm',
       name: 'useAIRouteDetection',
       message: 'Use AI for route detection? (More accurate but slower)',
-      when: (answers) => answers.testGenerationMode === 'ai',
+      when: (answers) => answers.testGenerationMode === 'ai' || answers.testGenerationMode === 'mcp',
       default: existingConfig?.useAIRouteDetection || false,
     },
     {
       type: 'input',
       name: 'customTestInstructions',
       message: 'Custom test instructions (optional, e.g., "Click all buttons, fill forms"):',
-      when: (answers) => answers.testGenerationMode === 'ai',
+      when: (answers) => answers.testGenerationMode === 'ai' || answers.testGenerationMode === 'mcp',
       default: existingConfig?.customTestInstructions || '',
+    },
+    {
+      type: 'input',
+      name: 'recordingStartUrl',
+      message: 'Starting URL for recording session:',
+      when: (answers) => answers.testGenerationMode === 'record',
+      default: options.live || existingConfig?.recordingStartUrl || existingConfig?.liveUrl,
+      validate: (input) => {
+        try {
+          new URL(input);
+          return true;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
+    },
+    {
+      type: 'input',
+      name: 'screenshotHotkey',
+      message: 'Screenshot hotkey (e.g., Control+Shift+KeyS):',
+      when: (answers) => answers.testGenerationMode === 'record',
+      default: existingConfig?.screenshotHotkey || 'Control+Shift+KeyS',
     },
     {
       type: 'input',
       name: 'scanPath',
       message: 'Path to scan for routes:',
+      when: (answers) => answers.testGenerationMode !== 'record',
       default: options.scan || existingConfig?.scanPath || '.',
       validate: (input) => input.length > 0 || 'Path is required',
     },
@@ -384,6 +454,11 @@ async function promptForConfig(options: InitOptions, existingConfig?: Config): P
       ...answers,
     } as Config;
 
+    // For recording mode, set scanPath to '.' if not provided
+    if (config.testGenerationMode === 'record' && !config.scanPath) {
+      config.scanPath = '.';
+    }
+
     // Ensure AI dependency is installed before testing setup
     Logger.newLine();
     try {
@@ -410,32 +485,37 @@ async function promptForConfig(options: InitOptions, existingConfig?: Config): P
       continue;
     }
 
-    // Test AI setup
-    Logger.newLine();
-    Logger.step('Testing AI setup...');
-    const isValid = await verifyAISetup(config);
-
-    if (isValid) {
-      Logger.success('AI setup verified!');
+    // Test AI setup (skip for template and recording modes)
+    if (config.testGenerationMode === 'template' || config.testGenerationMode === 'record') {
+      Logger.success('Configuration complete!');
       configValid = true;
     } else {
       Logger.newLine();
-      const { retry } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'retry',
-          message: 'Would you like to reconfigure?',
-          default: true,
-        },
-      ]);
+      Logger.step('Testing AI setup...');
+      const isValid = await verifyAISetup(config);
 
-      if (!retry) {
-        throw new Error('AI setup verification failed. Exiting.');
+      if (isValid) {
+        Logger.success('AI setup verified!');
+        configValid = true;
+      } else {
+        Logger.newLine();
+        const { retry } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'retry',
+            message: 'Would you like to reconfigure?',
+            default: true,
+          },
+        ]);
+
+        if (!retry) {
+          throw new Error('AI setup verification failed. Exiting.');
+        }
+
+        Logger.newLine();
+        Logger.info('Let\'s try again...');
+        Logger.newLine();
       }
-
-      Logger.newLine();
-      Logger.info('Let\'s try again...');
-      Logger.newLine();
     }
   }
 
