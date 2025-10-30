@@ -1,11 +1,11 @@
 
 
 APP
-/c- Entire prompt as config
+- Assertions into scripts
+- 
 
 Testing
 - Playwright mcp integration
-- stagehand
 
 Bug
 - dexilion.com//

@@ -681,6 +681,172 @@
       font-style: italic;
     }
 
+    /* Modal Styles */
+    .lk-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 14, 26, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 9999;
+      overflow-y: auto;
+      padding: 2rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .lk-modal-overlay.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .lk-modal {
+      background: linear-gradient(135deg, rgba(26, 31, 46, 0.98) 0%, rgba(10, 14, 26, 0.98) 100%);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      border-radius: 12px;
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+      animation: slideUp 0.3s ease;
+      box-shadow: 0 20px 60px rgba(52, 211, 153, 0.3);
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .lk-modal-header {
+      padding: 2rem 2rem 1rem;
+      border-bottom: 1px solid rgba(52, 211, 153, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lk-modal-header h3 {
+      font-size: 1.8rem;
+      color: #34d399;
+      margin: 0;
+    }
+
+    .lk-modal-close {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.3s ease;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lk-modal-close:hover {
+      opacity: 1;
+    }
+
+    .lk-modal-body {
+      padding: 2rem;
+    }
+
+    .lk-modal-intro {
+      font-size: 1rem;
+      opacity: 0.9;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .lk-form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .lk-form-label {
+      display: block;
+      color: #34d399;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .lk-form-input,
+    .lk-form-textarea,
+    .lk-form-select {
+      width: 100%;
+      padding: 0.75rem;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      border-radius: 6px;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .lk-form-input:focus,
+    .lk-form-textarea:focus,
+    .lk-form-select:focus {
+      outline: none;
+      border-color: rgba(52, 211, 153, 0.6);
+    }
+
+    .lk-form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .lk-form-required {
+      color: #34d399;
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .lk-form-submit {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(45deg, #34d399, #10b981);
+      color: #0a0e1a;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .lk-form-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(52, 211, 153, 0.4);
+    }
+
+    .lk-form-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     @media (max-width: 768px) {
       .lk-ascii-art pre {
         font-size: 0.4rem;
@@ -741,6 +907,22 @@
       .lk-install-command-footer code {
         font-size: 1rem;
       }
+
+      .lk-modal-overlay {
+        padding: 1rem;
+      }
+
+      .lk-modal-header {
+        padding: 1.5rem 1.5rem 1rem;
+      }
+
+      .lk-modal-body {
+        padding: 1.5rem;
+      }
+
+      .lk-modal-header h3 {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
@@ -763,7 +945,14 @@
           Built it for myself, sharing because you might need it too.
         </p>
         <div class="lk-hero-actions">
-          <a href="https://github.com/dexilion-team/lastest" target="_blank" rel="noopener noreferrer" class="lk-hero-cta-primary">
+          <button class="lk-hero-cta-primary lk-early-access-trigger">
+            <svg class="lk-hero-cta-icon" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+            </svg>
+            Get Early Access
+          </button>
+          <a href="https://github.com/dexilion-team/lastest" target="_blank" rel="noopener noreferrer" class="lk-hero-cta-secondary">
             <svg class="lk-hero-cta-icon" fill="currentColor" viewBox="0 0 16 16">
               <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
             </svg>
@@ -1149,17 +1338,18 @@
           Weekend project that solves a real problem. Free, open-source, rough edges included.
         </p>
         <div class="lk-cta-actions">
-          <a href="https://github.com/dexilion-team/lastest" target="_blank" rel="noopener noreferrer" class="lk-cta-button lk-cta-primary">
+          <button id="earlyAccessBtn" class="lk-cta-button lk-cta-primary">
+            <svg fill="currentColor" viewBox="0 0 16 16" width="20" height="20">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+            </svg>
+            Get Early Access
+          </button>
+          <a href="https://github.com/dexilion-team/lastest" target="_blank" rel="noopener noreferrer" class="lk-cta-button lk-cta-secondary">
             <svg fill="currentColor" viewBox="0 0 16 16" width="20" height="20">
               <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
             </svg>
             View on GitHub
-          </a>
-          <a href="https://dexilion.com/#contact" class="lk-cta-button lk-cta-secondary">
-            <svg fill="currentColor" viewBox="0 0 16 16" width="20" height="20">
-              <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
-            </svg>
-            Need Help?
           </a>
         </div>
         <div class="lk-install-command-footer">
@@ -1171,5 +1361,254 @@
       </div>
     </section>
   </div>
+
+  <!-- Early Access Modal -->
+  <div id="earlyAccessModal" class="lk-modal-overlay">
+    <div class="lk-modal">
+      <div class="lk-modal-header">
+        <h3>Get Early Access</h3>
+        <button id="closeModal" class="lk-modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="lk-modal-body">
+        <p class="lk-modal-intro">
+          Help us improve lasTest by sharing your testing needs. We'll notify you when new features become available.
+        </p>
+        <form id="earlyAccessForm">
+          <div class="lk-form-group">
+            <label for="email" class="lk-form-label">
+              Email Address <span class="lk-form-required">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="lk-form-input"
+              required
+              placeholder="your@email.com"
+            />
+          </div>
+
+          <div class="lk-form-group">
+            <label for="useCase" class="lk-form-label">
+              What brings you here?
+            </label>
+            <textarea
+              id="useCase"
+              name="useCase"
+              class="lk-form-textarea"
+              placeholder="e.g., Testing a Next.js app, preventing visual regressions..."
+            ></textarea>
+          </div>
+
+          <div class="lk-form-group">
+            <label for="painPoint" class="lk-form-label">
+              Biggest testing pain point?
+            </label>
+            <textarea
+              id="painPoint"
+              name="painPoint"
+              class="lk-form-textarea"
+              placeholder="What's the hardest part of testing your apps?"
+            ></textarea>
+          </div>
+
+          <div class="lk-form-group">
+            <label for="source" class="lk-form-label">
+              How did you hear about us?
+            </label>
+            <select id="source" name="source" class="lk-form-select">
+              <option value="">Select an option...</option>
+              <option value="github">GitHub</option>
+              <option value="twitter">Twitter/X</option>
+              <option value="reddit">Reddit</option>
+              <option value="linkedin">LinkedIn</option>
+              <option value="search">Search Engine</option>
+              <option value="friend">Friend/Colleague</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <button type="submit" class="lk-form-submit">
+            Submit Request
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Session tracking
+    const sessionData = {
+      pageLoadTime: Date.now(),
+      maxScrollDepth: 0,
+      referrer: document.referrer || 'Direct',
+      userAgent: navigator.userAgent
+    };
+
+    // Track scroll depth
+    function updateScrollDepth() {
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollPercentage = Math.round((scrollTop + windowHeight) / documentHeight * 100);
+
+      if (scrollPercentage > sessionData.maxScrollDepth) {
+        sessionData.maxScrollDepth = scrollPercentage;
+      }
+    }
+
+    window.addEventListener('scroll', updateScrollDepth);
+    updateScrollDepth(); // Initial check
+
+    // Modal functionality
+    const modal = document.getElementById('earlyAccessModal');
+    const openBtns = document.querySelectorAll('.lk-early-access-trigger, #earlyAccessBtn');
+    const closeBtn = document.getElementById('closeModal');
+    const form = document.getElementById('earlyAccessForm');
+
+    function openModal() {
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      // Track modal open event
+      sendToDiscord({
+        type: 'modal_open',
+        timestamp: new Date().toISOString(),
+        sessionData: getSessionMetrics()
+      });
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function getSessionMetrics() {
+      const timeOnPage = Math.round((Date.now() - sessionData.pageLoadTime) / 1000);
+      return {
+        timeOnPage: `${timeOnPage}s`,
+        scrollDepth: `${sessionData.maxScrollDepth}%`,
+        referrer: sessionData.referrer,
+        userAgent: sessionData.userAgent
+      };
+    }
+
+    async function sendToDiscord(data) {
+      const webhookUrl = 'https://discord.com/api/webhooks/1433539212212310097/D2oop-sCuV2MXP1IHB_lgn9REcsyp64EgXcJje9WcISgBESVSf-W9d_d6Khbgku29Ch6';
+
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            embeds: [{
+              title: data.type === 'modal_open' ? '👀 Early Access Modal Opened' : '🚪 Early Access Request',
+              color: 3464089, // #34d399 in decimal
+              fields: data.type === 'modal_open' ? [
+                {
+                  name: 'Session Metrics',
+                  value: `⏱️ Time on page: ${data.sessionData.timeOnPage}\n📊 Scroll depth: ${data.sessionData.scrollDepth}\n🔗 Referrer: ${data.sessionData.referrer}`
+                },
+                {
+                  name: 'User Agent',
+                  value: data.sessionData.userAgent.substring(0, 100) + '...'
+                }
+              ] : [
+                {
+                  name: '📧 Email',
+                  value: data.email || 'Not provided'
+                },
+                {
+                  name: '💡 Use Case',
+                  value: data.useCase || 'Not provided',
+                  inline: false
+                },
+                {
+                  name: '😓 Pain Point',
+                  value: data.painPoint || 'Not provided',
+                  inline: false
+                },
+                {
+                  name: '📍 Source',
+                  value: data.source || 'Not provided',
+                  inline: true
+                },
+                {
+                  name: '📊 Session',
+                  value: `⏱️ ${data.sessionData.timeOnPage} | 📊 ${data.sessionData.scrollDepth} scroll`,
+                  inline: true
+                },
+                {
+                  name: '🔗 Referrer',
+                  value: data.sessionData.referrer
+                }
+              ],
+              timestamp: data.timestamp,
+              footer: {
+                text: 'lasTest Landing Page'
+              }
+            }]
+          })
+        });
+      } catch (error) {
+        console.error('Failed to send to Discord:', error);
+      }
+    }
+
+    // Event listeners
+    openBtns.forEach(btn => {
+      btn.addEventListener('click', openModal);
+    });
+    closeBtn.addEventListener('click', closeModal);
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Close on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = form.querySelector('.lk-form-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+
+      const formData = {
+        type: 'form_submission',
+        email: document.getElementById('email').value,
+        useCase: document.getElementById('useCase').value,
+        painPoint: document.getElementById('painPoint').value,
+        source: document.getElementById('source').value,
+        timestamp: new Date().toISOString(),
+        sessionData: getSessionMetrics()
+      };
+
+      await sendToDiscord(formData);
+
+      // Show success message
+      submitBtn.textContent = '✓ Submitted!';
+      submitBtn.style.background = 'linear-gradient(45deg, #10b981, #059669)';
+
+      setTimeout(() => {
+        closeModal();
+        form.reset();
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Request';
+        submitBtn.style.background = '';
+      }, 2000);
+    });
+  </script>
 </body>
 </html>
