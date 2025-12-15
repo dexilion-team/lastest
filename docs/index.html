@@ -941,8 +941,8 @@
         <h1>lasTest</h1>
         <p class="lk-hero-tagline">Built this over the weekend so I won't break prod.</p>
         <p class="lk-hero-subtitle">
-          AI-powered visual testing CLI that compares live vs dev environments. Rough edges, but it works.
-          Built it for myself, sharing because you might need it too.
+          Visual testing CLI with 4 generation modes: AI-powered, Template, MCP-validated, or Browser Recording.
+          Compares live vs dev environments. Rough edges, but it works. Built it for myself, sharing because you might need it too.
         </p>
         <div class="lk-hero-actions">
           <button class="lk-hero-cta-primary lk-early-access-trigger">
@@ -975,7 +975,7 @@
 ║                                                 Automated Visual Testing  ║
 ║                                                         made by Dexilion  ║
 ║                                                             dexilion.com  ║
-║                                                                   v0.1.2  ║
+║                                                                   v0.3.0  ║
 ╚═══════════════════════════════════════════════════════════════════════════╝</pre>
           </div>
         </div>
@@ -1031,10 +1031,12 @@
                 <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm8.93 4.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM8 5.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
               </svg>
             </div>
-            <h3>Uses AI You Already Pay For</h3>
+            <h3>4 Test Generation Modes</h3>
             <p>
-              Works with Claude Pro or GitHub Copilot subscription. No extra API costs.
-              It generates Playwright tests automatically—sometimes they're wonky, but mostly they work.
+              <strong>AI Mode:</strong> Uses Claude Pro or Copilot (no extra costs).<br>
+              <strong>Template Mode:</strong> Simple screenshots (free, no AI).<br>
+              <strong>MCP Mode:</strong> Validated selectors (bulletproof).<br>
+              <strong>Recording Mode:</strong> Record in browser (full control).
             </p>
           </div>
 
@@ -1086,10 +1088,10 @@
                 <path d="M5.854 4.854a.5.5 0 1 0-.708-.708l-3.5 3.5a.5.5 0 0 0 0 .708l3.5 3.5a.5.5 0 0 0 .708-.708L2.707 8l3.147-3.146zm4.292 0a.5.5 0 0 1 .708-.708l3.5 3.5a.5.5 0 0 1 0 .708l-3.5 3.5a.5.5 0 0 1-.708-.708L13.293 8l-3.147-3.146z"/>
               </svg>
             </div>
-            <h3>Template Mode Available</h3>
+            <h3>Multi-Viewport Testing</h3>
             <p>
-              Skip AI if you just need screenshots. Even faster, no AI costs.
-              Basic, but works for simple comparisons.
+              Test desktop, tablet, and mobile viewports simultaneously.
+              Generates separate screenshots for each screen size.
             </p>
           </div>
         </div>
@@ -1134,18 +1136,20 @@
             <div class="lk-step-content">
               <h3>Run One Command</h3>
               <p>
-                <code>npx @dexilion/lastest init</code> — that's it! The CLI guides you through choosing your AI provider
-                (Claude or Copilot), entering your URLs, and configuring options.
+                <code>npx @dexilion/lastest init</code> — that's it! Choose your test generation mode
+                (AI, Template, MCP, or Recording), configure your URLs and viewports.
               </p>
             </div>
           </div>
           <div class="lk-step">
             <div class="lk-step-number">2</div>
             <div class="lk-step-content">
-              <h3>AI Generates Tests</h3>
+              <h3>Generate Tests Your Way</h3>
               <p>
-                lasTest scans your codebase for routes, uses AI to create intelligent Playwright tests
-                with step logging, and caches them for fast re-runs.
+                <strong>AI Mode:</strong> Scans routes, AI generates Playwright tests.<br>
+                <strong>Template:</strong> Simple screenshot tests (no AI).<br>
+                <strong>MCP:</strong> AI + real-time validation.<br>
+                <strong>Recording:</strong> Record interactions in browser.
               </p>
             </div>
           </div>
@@ -1154,8 +1158,8 @@
             <div class="lk-step-content">
               <h3>Get Visual Diffs</h3>
               <p>
-                Tests run against both live and dev environments, capturing screenshots and performing
-                pixel-perfect comparisons. View results in a beautiful HTML report.
+                Tests run against live and dev environments across all viewports, capturing screenshots and
+                performing pixel-perfect comparisons. View results in tabbed HTML reports with step-by-step execution details.
               </p>
             </div>
           </div>
