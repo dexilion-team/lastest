@@ -10,7 +10,9 @@ export class ConfigManager {
 
     if (await fs.pathExists(configPath)) {
       const content = await fs.readFile(configPath, 'utf-8');
-      return JSON.parse(content);
+      let config = JSON.parse(content);
+      config = this.migrateViewportConfig(config);
+      return config;
     }
 
     return null;
@@ -29,10 +31,34 @@ export class ConfigManager {
         width: 1920,
         height: 1080,
       },
+      viewports: [
+        { name: 'Desktop', slug: 'desktop', width: 1920, height: 1080 },
+        { name: 'Mobile (iPhone SE)', slug: 'mobile', width: 375, height: 667 }
+      ],
       diffThreshold: 1,
       parallel: true,
       maxConcurrency: 5,
       screenshotHotkey: 'Control+Shift+KeyS',
     };
+  }
+
+  private static migrateViewportConfig(config: any): Config {
+    // Migrate old single viewport to viewports array
+    if (config.viewport && !config.viewports) {
+      config.viewports = [{
+        name: 'Desktop',
+        slug: 'desktop',
+        width: config.viewport.width,
+        height: config.viewport.height
+      }];
+      delete config.viewport;
+    }
+
+    // Ensure viewports array is not empty
+    if (!config.viewports || config.viewports.length === 0) {
+      config.viewports = this.getDefaultConfig().viewports;
+    }
+
+    return config;
   }
 }

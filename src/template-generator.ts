@@ -13,6 +13,9 @@ export class TemplateGenerator {
   async generateTests(routes: RouteInfo[]): Promise<TestCase[]> {
     const tests: TestCase[] = [];
     const testsDir = path.join(this.config.outputDir, 'tests');
+    const viewports = this.config.viewports || [
+      { name: 'Desktop', slug: 'desktop', width: 1920, height: 1080 }
+    ];
 
     await fs.ensureDir(testsDir);
 
@@ -23,24 +26,27 @@ export class TemplateGenerator {
         continue;
       }
 
-      try {
-        Logger.dim(`  Generating template test for ${route.path}...`);
-        const code = this.buildTestTemplate(route);
+      for (const viewport of viewports) {
+        try {
+          Logger.dim(`  Generating template test for ${route.path} on ${viewport.name}...`);
+          const code = this.buildTestTemplate(route);
 
-        const testName = this.getTestName(route.path);
-        const filePath = path.join(testsDir, `${testName}.ts`);
+          const testName = `${this.getTestName(route.path)}-${viewport.slug}`;
+          const filePath = path.join(testsDir, `${testName}.ts`);
 
-        await fs.writeFile(filePath, code);
+          await fs.writeFile(filePath, code);
 
-        tests.push({
-          name: testName,
-          route: route.path,
-          code,
-          filePath,
-          routerType: route.routerType,
-        });
-      } catch (error) {
-        Logger.error(`Failed to generate template test for ${route.path}: ${(error as Error).message}`);
+          tests.push({
+            name: testName,
+            route: route.path,
+            code,
+            filePath,
+            routerType: route.routerType,
+            viewport: viewport.slug,
+          });
+        } catch (error) {
+          Logger.error(`Failed to generate template test for ${route.path} on ${viewport.name}: ${(error as Error).message}`);
+        }
       }
     }
 

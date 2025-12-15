@@ -8,6 +8,12 @@ export interface Config {
     width: number;
     height: number;
   };
+  viewports?: Array<{
+    name: string;
+    slug: string;
+    width: number;
+    height: number;
+  }>;
   diffThreshold?: number;
   parallel?: boolean;
   maxConcurrency?: number;
@@ -36,6 +42,7 @@ export interface TestCase {
   type?: string;
   generatedAt?: string;
   routerType?: 'hash' | 'browser';
+  viewport?: string;
 }
 
 export interface TestResult {
@@ -47,6 +54,7 @@ export interface TestResult {
   duration: number;
   error?: string;
   detailedResults?: DetailedTestExecution;
+  viewport?: string;
 }
 
 export interface DetailedTestExecution {
@@ -77,6 +85,7 @@ export interface ComparisonResult {
   diffScreenshot?: string;
   diffPercentage: number;
   hasDifferences: boolean;
+  viewport?: string;
 }
 
 export interface Report {

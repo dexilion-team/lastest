@@ -2,7 +2,6 @@
 
 APP
 - Assertions into scripts
-- 
 
 Testing
 - Playwright mcp integration

@@ -19,7 +19,7 @@
 ║                                                 Automated Visual Testing  ║
 ║                                                         made by Dexilion  ║
 ║                                                             dexilion.com  ║
-║                                                                   v0.1.2  ║
+║                                                                   v0.3.0  ║
 ╚═══════════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -29,27 +29,37 @@ Automatically scans your codebase, generates Playwright tests using AI, and runs
 
 ## ✨ Features
 
-- ⏱️ **30s Frontend PR Testing** - Complete visual regression testing from install to report in under 30 seconds
-- 🤖 **AI-Powered Test Generation** - Uses Claude Pro/Max or GitHub Copilot subscription to generate intelligent tests
-- 📝 **Template Mode** - Skip AI entirely for simple screenshot tests (faster, no AI costs)
-- 🔍 **Smart Route Detection** - Automatically discovers pages from Next.js, React Router, Vue Router, and more
-- 🧠 **AI Route Detection** - Optional AI-powered route discovery for complex routing patterns
+### 🎯 Test Generation Modes (Choose Your Workflow)
+- 🤖 **AI Mode** - Claude/Copilot generates intelligent tests with interactions (fast, smart)
+- 📝 **Template Mode** - Simple screenshot tests without AI (fastest, free, no setup)
+- 🔍 **MCP Mode** - AI + real-time validation for bulletproof tests (slowest, most reliable)
+- 🎬 **Recording Mode** - Record interactions in browser, export as Playwright tests (full control)
+
+### ⚡ Core Features
+- ⏱️ **30s Frontend PR Testing** - Complete visual regression testing from install to report
+- 📸 **Visual Regression Testing** - Pixel-perfect screenshot comparison across environments
+- 🎨 **Beautiful Tabbed Reports** - Interactive HTML with Visual Comparison, Test Results & Step-by-Step views
+- 📱 **Multi-Viewport Testing** - Test desktop, tablet, mobile viewports simultaneously
+- 🔍 **Smart Route Detection** - Auto-discovers routes from Next.js, React Router, Vue Router, and more
+- 🧠 **AI Route Detection** - Optional AI-powered discovery for complex routing patterns
 - 🎯 **Custom Test Instructions** - Add your own AI instructions (e.g., "Click buttons, fill forms")
-- 📸 **Visual Regression Testing** - Captures and compares screenshots with pixel-perfect accuracy
-- 🎨 **Beautiful Tabbed Reports** - Interactive HTML reports with Visual Comparison, Test Results, and Playwright views
-- 🎭 **Detailed Step Logging** - AI tests log execution steps (navigation, interactions, screenshots)
+- 🎭 **Detailed Step Logging** - Tracks navigation, interactions, screenshots with timing
 - ⚡ **Parallel Execution** - Run tests concurrently for blazing-fast results
+- 💾 **Test Caching** - Generated tests cached for instant re-runs (no regeneration costs)
 - 🔧 **Highly Configurable** - Customize everything via `.lastestrc.json`
-- 💾 **Test Caching** - Generated tests are cached for fast re-runs without AI calls
-- 📊 **Error Tracking** - Comprehensive error logging with optional email notifications support
+- 📊 **Error Tracking** - Comprehensive error logging with optional email notifications
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-You'll need one of the following:
+Choose based on your preferred test generation mode:
+
+**For AI Mode** (one of the following):
 - **Claude Pro or Claude Max subscription** + Claude CLI installed
 - **GitHub Copilot subscription** (Pro/Business/Enterprise) + Copilot CLI installed (requires Node.js 22+)
+
+**For Template/Recording Mode**: No AI subscription needed!
 
 ### Setup
 
@@ -59,9 +69,11 @@ npx @dexilion/lastest init
 
 That's it! The CLI will guide you through:
 
-1. **AI Provider** - Choose between Claude Subscription or GitHub Copilot
-2. **URLs** - Provide your live and dev URLs
-3. **Automated Testing** - Sit back while lasTest does the work
+1. **Test Generation Mode** - Choose: AI, Template, MCP, or Recording
+2. **AI Provider** (if AI/MCP mode) - Choose between Claude or Copilot
+3. **URLs** - Provide your live and dev URLs
+4. **Viewport Options** - Test multiple screen sizes (desktop, tablet, mobile)
+5. **Automated Testing** - Sit back while lasTest does the work
 
 ## 📦 Installation
 
@@ -94,11 +106,12 @@ lastest init
 ```
 
 This will:
-- Guide you through AI provider setup (Claude Subscription or Copilot Subscription)
-- Scan your codebase for routes
-- Generate tests using AI
+- Guide you through configuration (mode selection, AI provider, URLs, viewports)
+- Scan your codebase for routes (or start recording session)
+- Generate tests using your chosen mode (AI, template, MCP, or recording)
 - Create `.lastestrc.json` (config) and `.lastest-tests.json` (cached tests)
-- Run the test suite
+- Run the test suite across all environments and viewports
+- Generate comprehensive HTML reports with visual diffs
 
 ### Re-running Tests
 
@@ -173,33 +186,60 @@ lastest init
 
 ## 🎯 How It Works
 
-### AI Mode (Default)
-1. **Scan** - Analyzes your codebase to discover all routes/pages
-2. **Generate** - Uses AI to create intelligent Playwright tests with step logging
-3. **Cache** - Saves generated tests to `.lastest-tests.json` for fast re-runs
-4. **Execute** - Runs tests against both live and dev environments with detailed step tracking
-5. **Compare** - Performs pixel-perfect comparison of screenshots
-6. **Report** - Generates tabbed HTML report with Visual Comparison, Test Results, and Playwright views
+lasTest offers **4 test generation modes** to fit your workflow:
 
-**AI Test Execution:**
-- Tests are transpiled from TypeScript to JavaScript at runtime
-- Executed in a secure VM sandbox with Playwright APIs
-- Step logging tracks navigation, interactions, and screenshot capture
-- Fallback to simple screenshot test only if screenshot is missing
-- Failed tests are marked as failed (no silent fallback)
+### 🤖 AI Mode (Default - Fast & Smart)
+1. **Scan** - Discovers routes from your codebase
+2. **Generate** - AI creates intelligent Playwright tests with interactions
+3. **Cache** - Saves tests to `.lastest-tests.json` for instant re-runs
+4. **Execute** - Runs tests with step tracking and timing
+5. **Compare** - Pixel-perfect screenshot comparison
+6. **Report** - Beautiful tabbed HTML report
 
-### Template Mode (No AI)
-1. **Scan** - Analyzes your codebase to discover all routes/pages
-2. **Generate** - Creates simple screenshot tests from templates (no AI calls)
-3. **Cache** - Saves generated tests to `.lastest-tests.json` for fast re-runs
-4. **Execute** - Runs tests against both live and dev environments
-5. **Compare** - Performs pixel-perfect comparison of screenshots
-6. **Report** - Generates tabbed HTML report with Visual Comparison, Test Results, and Playwright views
+**Best for:** Most use cases, generates smart tests with interactions in seconds
 
-**When to use Template Mode:**
-- You want fast test generation without AI costs
-- You only need basic screenshot comparisons
-- You don't need custom interactions (button clicks, form fills, etc.)
+### 📝 Template Mode (Fastest - No AI)
+1. **Scan** - Discovers routes from your codebase
+2. **Generate** - Creates simple screenshot tests (no AI needed)
+3. **Cache** - Saves tests for re-runs
+4. **Execute** - Runs basic screenshot tests
+5. **Compare** - Visual comparison
+6. **Report** - Full HTML report
+
+**Best for:** Basic screenshot comparison, no AI costs, fastest generation
+
+### 🔍 MCP Mode (Most Reliable - AI + Validation)
+1. **Scan** - Discovers routes from your codebase
+2. **Generate** - AI creates initial test code
+3. **Validate** - MCP validates selectors against real pages
+4. **Discover** - MCP finds additional interactions (buttons, forms)
+5. **Refine** - AI improves tests based on MCP feedback
+6. **Execute** - Runs validated tests with high reliability
+7. **Report** - Comprehensive reports
+
+**Best for:** Critical routes requiring bulletproof tests, eliminates selector guessing
+
+### 🎬 Recording Mode (Full Control - Interactive)
+1. **Launch** - Opens headed Chromium browser
+2. **Record** - You interact naturally, all actions captured
+3. **Screenshot** - Auto-screenshots on navigation, manual via Ctrl+Shift+S
+4. **Stop** - Close browser or press Ctrl+R to finish
+5. **Generate** - Converts recording to Playwright test
+6. **Execute** - Runs recorded test
+7. **Report** - Full HTML report
+
+**Best for:** Complex workflows, full control, no AI hallucination
+
+### Mode Comparison
+
+| Feature | AI | Template | MCP | Recording |
+|---------|-----|----------|-----|-----------|
+| Speed | ⚡⚡ Fast | ⚡⚡⚡ Fastest | ⚡ Slow | 🎯 Manual |
+| Cost | 💰 AI tokens | ✅ Free | 💰💰 AI tokens (2x) | ✅ Free |
+| Setup | Medium | Easy | Complex | Easy |
+| Reliability | Medium | Low | High | Highest |
+| Control | Low | N/A | Low | Full |
+| Interactions | Yes | No | Yes | Yes |
 
 ## 💳 AI Provider Options
 
@@ -287,16 +327,19 @@ The HTML report includes a **tabbed interface** with three views:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `testGenerationMode` | `'ai' \| 'template'` | `'ai'` | Test generation mode (AI or template) |
-| `aiProvider` | `'claude-subscription' \| 'copilot-subscription'` | `'claude-subscription'` | AI provider for test generation (when mode is 'ai') |
-| `useAIRouteDetection` | `boolean` | `false` | Use AI to detect routes (more accurate but slower) |
-| `customTestInstructions` | `string` | - | Custom instructions for AI test generation (e.g., "Click buttons, fill forms") |
+| `testGenerationMode` | `'ai' \| 'template' \| 'mcp' \| 'record'` | `'ai'` | Test generation mode |
+| `aiProvider` | `'claude-subscription' \| 'copilot-subscription'` | `'claude-subscription'` | AI provider (for ai/mcp modes) |
+| `useAIRouteDetection` | `boolean` | `false` | Use AI to detect routes (slower, more accurate) |
+| `customTestInstructions` | `string` | - | Custom AI instructions (e.g., "Click buttons, fill forms") |
+| `recordingStartUrl` | `string` | - | Starting URL for recording mode |
+| `screenshotHotkey` | `string` | `'Control+Shift+KeyS'` | Manual screenshot hotkey (recording mode) |
 | `liveUrl` | `string` | - | Live environment URL |
 | `devUrl` | `string` | - | Development environment URL |
 | `scanPath` | `string` | `'.'` | Path to scan for routes |
 | `outputDir` | `string` | `'lastest-results'` | Output directory for results |
-| `viewport` | `object` | `{width: 1920, height: 1080}` | Browser viewport size |
-| `diffThreshold` | `number` | `1` | Pixel difference threshold (0-1) |
+| `viewport` | `object` | `{width: 1920, height: 1080}` | Browser viewport (legacy single) |
+| `viewports` | `array` | `[{Desktop: 1920x1080}]` | Multiple viewports to test |
+| `diffThreshold` | `number` | `1` | Pixel difference threshold (0-100%) |
 | `parallel` | `boolean` | `true` | Run tests in parallel |
 | `maxConcurrency` | `number` | `5` | Max parallel test executions |
 
@@ -346,6 +389,79 @@ lastest init --ai copilot-subscription
 - **Requirements**: Node.js 22+ and npm 10+
 
 ## 🔥 Advanced Usage
+
+### Recording Mode Quick Start
+
+Record interactions visually instead of writing code:
+
+```bash
+# Start recording session
+lastest init
+# Select "Recording" mode
+# Choose starting URL
+# Browser opens - interact naturally
+# Press Ctrl+Shift+S to take manual screenshots
+# Press Ctrl+R or close browser to finish
+# Test automatically generated and executed
+```
+
+**Recording Controls:**
+- **Ctrl+Shift+S**: Take manual screenshot at current state
+- **Ctrl+R**: Stop recording and generate test
+- **Close browser**: Stop recording and generate test
+
+**What's Captured:**
+- All clicks, typing, form submissions
+- Navigation and page changes
+- Hover interactions
+- Scroll positions
+- Auto-screenshots after each navigation
+- Manual screenshots via hotkey
+
+### Multi-Viewport Testing
+
+Test multiple screen sizes in a single run:
+
+```json
+{
+  "viewports": [
+    { "name": "Desktop", "slug": "desktop", "width": 1920, "height": 1080 },
+    { "name": "Tablet", "slug": "tablet", "width": 768, "height": 1024 },
+    { "name": "Mobile", "slug": "mobile", "width": 375, "height": 667 }
+  ]
+}
+```
+
+Each viewport generates separate screenshots: `route-desktop.png`, `route-tablet.png`, `route-mobile.png`
+
+### MCP Mode Setup
+
+For maximum test reliability with real-time validation:
+
+```bash
+# Install Claude CLI (if not already installed)
+npm install -g @anthropic-ai/claude-code
+claude login
+
+# Install Playwright MCP server
+claude mcp add @playwright/mcp@latest
+
+# Run lastest with MCP mode
+lastest init
+# Select "MCP" mode
+# MCP validates selectors against real pages
+# Discovers additional interactions
+# AI refines tests based on validation
+```
+
+**What MCP Mode Does:**
+1. AI generates initial test code
+2. MCP validates all selectors exist on the page
+3. MCP discovers clickable elements, forms, links
+4. AI refines test with validated selectors and interactions
+5. Result: Bulletproof tests that won't break
+
+**Best for:** Critical user flows, checkout processes, authentication
 
 ### CI/CD Integration
 

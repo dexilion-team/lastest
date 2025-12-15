@@ -17,11 +17,11 @@ export class ClaudeSubscriptionClient {
     // No API key needed - uses authenticated CLI
   }
 
-  async generateTest(route: RouteInfo): Promise<string> {
+  async generateTest(route: RouteInfo, viewport?: { name: string; width: number; height: number }): Promise<string> {
     // Check if Claude CLI is available
     await this.checkClaudeCLI();
 
-    const prompt = this.buildPrompt(route);
+    const prompt = this.buildPrompt(route, viewport);
 
     try {
       // Use the SDK directly
@@ -121,12 +121,36 @@ export class ClaudeSubscriptionClient {
     }
   }
 
-  private buildPrompt(route: RouteInfo): string {
+  private buildPrompt(route: RouteInfo, viewport?: { name: string; width: number; height: number }): string {
+    let viewportContext = '';
+    if (viewport) {
+      viewportContext = `\nVIEWPORT CONTEXT:
+- Testing on ${viewport.name} (${viewport.width}x${viewport.height})`;
+
+      if (viewport.width < 768) {
+        viewportContext += `
+- This is a MOBILE viewport. Important considerations:
+  * Verify touch targets are appropriately sized (min 44x44px)
+  * Check for mobile-specific navigation (hamburger menus, mobile drawers)
+  * Test scrolling behavior and fixed/sticky elements
+  * Ensure forms are usable on small screens without horizontal scrolling
+  * Verify responsive layout doesn't cause content overlap or cutoff
+  * Look for mobile-specific UI patterns (bottom sheets, swipe gestures)
+  * Check that tap areas don't overlap with other interactive elements`;
+      } else {
+        viewportContext += `
+- This is a DESKTOP viewport. Important considerations:
+  * Verify hover states and tooltips work correctly
+  * Check desktop navigation patterns (dropdowns, mega menus)
+  * Ensure wide-screen layouts utilize available space effectively`;
+      }
+    }
+
     const basePrompt = `Generate a Playwright test for the following route:
 
 Route: ${route.path}
 Type: ${route.type}
-${route.filePath ? `File: ${route.filePath}` : ''}
+${route.filePath ? `File: ${route.filePath}` : ''}${viewportContext}
 
 Requirements:
 1. Create a test that navigates to the route

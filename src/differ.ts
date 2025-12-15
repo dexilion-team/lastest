@@ -15,11 +15,14 @@ export class Differ {
     const diffsDir = path.join(this.outputDir, 'diffs');
     await fs.ensureDir(diffsDir);
 
-    // Create a map of dev results by route for easy lookup
-    const devResultsMap = new Map(devResults.map((r) => [r.route, r]));
+    // Create a map of dev results by route AND viewport for easy lookup
+    const devResultsMap = new Map(
+      devResults.map((r) => [`${r.route}-${r.viewport || 'default'}`, r])
+    );
 
     for (const liveResult of liveResults) {
-      const devResult = devResultsMap.get(liveResult.route);
+      const mapKey = `${liveResult.route}-${liveResult.viewport || 'default'}`;
+      const devResult = devResultsMap.get(mapKey);
 
       if (!devResult) {
         continue;
@@ -35,7 +38,8 @@ export class Differ {
           pair.live,
           pair.dev,
           pair.index,
-          diffsDir
+          diffsDir,
+          liveResult.viewport
         );
 
         comparisons.push(comparison);
@@ -99,7 +103,8 @@ export class Differ {
     liveScreenshotPath: string,
     devScreenshotPath: string,
     index: number | undefined,
-    diffsDir: string
+    diffsDir: string,
+    viewport?: string
   ): Promise<ComparisonResult> {
     try {
       // Read both images
@@ -113,6 +118,7 @@ export class Differ {
           devScreenshot: devScreenshotPath,
           diffPercentage: 100,
           hasDifferences: true,
+          viewport,
         };
       }
 
@@ -159,6 +165,7 @@ export class Differ {
           diffScreenshot: diffPath,
           diffPercentage: parseFloat(diffPercentage.toFixed(2)),
           hasDifferences,
+          viewport,
         };
       }
 
@@ -197,6 +204,7 @@ export class Differ {
         diffScreenshot: diffPath,
         diffPercentage: parseFloat(diffPercentage.toFixed(2)),
         hasDifferences,
+        viewport,
       };
     } catch (error) {
       return {
@@ -205,6 +213,7 @@ export class Differ {
         devScreenshot: devScreenshotPath,
         diffPercentage: 100,
         hasDifferences: true,
+        viewport,
       };
     }
   }

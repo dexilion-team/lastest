@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**lasTest** (displayed as "lasTest" in UI, package name "lastest") is an AI-powered CLI tool for automated visual regression testing. It compares live vs dev environments by:
+**lasTest** (v0.3.0 - displayed as "lasTest" in UI, package name "lastest") is an AI-powered CLI tool for automated visual regression testing. It compares live vs dev environments through multiple test generation modes:
 1. Scanning codebases to discover routes
-2. Generating Playwright tests using AI (Claude or Copilot)
+2. Generating Playwright tests using AI (Claude or Copilot), templates, MCP validation, or interactive recording
 3. Running tests against both environments
-4. Creating visual diff reports
+4. Creating visual diff reports with step-by-step comparison
 
 ## Development Commands
 
@@ -44,8 +44,8 @@ The tool follows a strict 5-stage pipeline orchestrated by `src/commands/init.ts
 ### Key Architectural Patterns
 
 #### Two-Command Model
-- **`lastest init`**: Full pipeline with AI generation (scan → generate → cache → run → report)
-- **`lastest`**: Fast re-runs using cached tests (load cache → run → report, **no AI calls**)
+- **`lastest init`**: Full pipeline with test generation (scan → generate → cache → run → report)
+- **`lastest`**: Fast re-runs using cached tests (load cache → run → report, **no generation**)
 
 This separation allows users to:
 - Run `init` once to generate tests with AI
@@ -105,6 +105,15 @@ Three files control behavior (all in current working directory):
 - UI displays: "lasTest" (capital T)
 - Package name: "lastest"
 - Config files: `.lastestrc.json`, `.lastest-tests.json`
+- Version: Must match across `package.json`, `cli.ts`, and `README.md` (currently v0.3.0)
+- After version changes, run `npm install` to update `package-lock.json`
+
+#### Multi-Viewport Support
+- Tests can run against multiple viewport sizes (desktop, tablet, mobile)
+- Config supports both single `viewport` (legacy) and `viewports` array
+- Each test generates separate screenshots per viewport
+- Screenshot filenames include viewport slug: `route-name-{viewport-slug}.png`
+- Recording mode can use custom viewport via `recordingViewport` config
 
 #### AI Client Specifics
 
@@ -182,9 +191,9 @@ Three files control behavior (all in current working directory):
 
 ```
 src/
-├── cli.ts                       # Commander.js entry point
+├── cli.ts                       # Commander.js entry point (v0.3.0)
 ├── commands/
-│   ├── init.ts                  # Full pipeline with AI/template generation
+│   ├── init.ts                  # Full pipeline with AI/template/MCP/recording generation
 │   └── run.ts                   # Fast re-run using cached tests
 ├── ai/
 │   ├── claude-subscription.ts   # Claude Agent SDK client (with custom instructions)
@@ -192,15 +201,17 @@ src/
 ├── utils/
 │   ├── logger.ts                # Console output and formatting utilities
 │   ├── error-logger.ts          # Error capture and email notification support
-│   └── step-tracker.ts          # Test step tracking with automatic timing
+│   ├── step-tracker.ts          # Test step tracking with automatic timing
+│   ├── interaction-tracker.ts   # Recording mode event deduplication and tracking
+│   ├── selector-generator.ts    # Intelligent selector generation for recording
+│   └── mcp-helper.ts            # MCP installation checks
 ├── scanner.ts                   # Framework-specific route detection + AI detection
-├── generator.ts                 # Test generation orchestrator (AI, template, or MCP mode)
+├── generator.ts                 # Test generation orchestrator (AI, template, MCP, or recording mode)
 ├── template-generator.ts        # Template-based test generator (no AI)
 ├── mcp-generator.ts             # MCP-enhanced test generator (AI + MCP validation)
 ├── mcp-validator.ts             # MCP validation and interaction discovery
+├── recorder.ts                  # Interactive browser recording engine
 ├── test-cache.ts                # Test persistence layer
-├── utils/
-│   └── mcp-helper.ts            # MCP installation checks
 ├── runner.ts                    # Playwright test executor with VM sandbox
 ├── differ.ts                    # Pixelmatch screenshot comparison
 ├── reporter.ts                  # Tabbed HTML report generator

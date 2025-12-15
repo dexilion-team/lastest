@@ -15,28 +15,35 @@ export class TestRunner {
 
   async runTests(tests: TestCase[]): Promise<TestResult[]> {
     const results: TestResult[] = [];
+    const viewports = this.config.viewports || [
+      { name: 'Desktop', slug: 'desktop', width: 1920, height: 1080 }
+    ];
 
     // Launch browser
     this.browser = await chromium.launch({ headless: true });
 
     try {
-      // Run tests for live environment
-      Logger.dim('  Testing live environment...');
-      const liveResults = await this.runTestsForEnvironment(tests, 'live', this.config.liveUrl);
-      results.push(...liveResults);
+      for (const viewport of viewports) {
+        Logger.info(`\nTesting with ${viewport.name} (${viewport.width}x${viewport.height})`);
 
-      const livePassed = liveResults.filter(r => r.passed).length;
-      const liveFailed = liveResults.filter(r => !r.passed).length;
-      Logger.dim(`    ✓ ${livePassed}/${liveResults.length} passed  ✗ ${liveFailed}/${liveResults.length} failed`);
+        // Run tests for live environment
+        Logger.dim('  Testing live environment...');
+        const liveResults = await this.runTestsForEnvironment(tests, 'live', this.config.liveUrl, viewport);
+        results.push(...liveResults);
 
-      // Run tests for dev environment
-      Logger.dim('  Testing dev environment...');
-      const devResults = await this.runTestsForEnvironment(tests, 'dev', this.config.devUrl);
-      results.push(...devResults);
+        const livePassed = liveResults.filter(r => r.passed).length;
+        const liveFailed = liveResults.filter(r => !r.passed).length;
+        Logger.dim(`    ✓ ${livePassed}/${liveResults.length} passed  ✗ ${liveFailed}/${liveResults.length} failed`);
 
-      const devPassed = devResults.filter(r => r.passed).length;
-      const devFailed = devResults.filter(r => !r.passed).length;
-      Logger.dim(`    ✓ ${devPassed}/${devResults.length} passed  ✗ ${devFailed}/${devResults.length} failed`);
+        // Run tests for dev environment
+        Logger.dim('  Testing dev environment...');
+        const devResults = await this.runTestsForEnvironment(tests, 'dev', this.config.devUrl, viewport);
+        results.push(...devResults);
+
+        const devPassed = devResults.filter(r => r.passed).length;
+        const devFailed = devResults.filter(r => !r.passed).length;
+        Logger.dim(`    ✓ ${devPassed}/${devResults.length} passed  ✗ ${devFailed}/${devResults.length} failed`);
+      }
     } finally {
       await this.browser?.close();
     }
@@ -47,7 +54,8 @@ export class TestRunner {
   private async runTestsForEnvironment(
     tests: TestCase[],
     environment: 'live' | 'dev',
-    baseUrl: string
+    baseUrl: string,
+    viewport: { name: string; slug: string; width: number; height: number }
   ): Promise<TestResult[]> {
     const results: TestResult[] = [];
     const screenshotsDir = path.join(this.config.outputDir, 'screenshots', environment);
@@ -59,14 +67,14 @@ export class TestRunner {
 
       for (const chunk of chunks) {
         const chunkResults = await Promise.all(
-          chunk.map((test) => this.runSingleTest(test, environment, baseUrl, screenshotsDir))
+          chunk.map((test) => this.runSingleTest(test, environment, baseUrl, screenshotsDir, viewport))
         );
         results.push(...chunkResults);
       }
     } else {
       // Run tests sequentially
       for (const test of tests) {
-        const result = await this.runSingleTest(test, environment, baseUrl, screenshotsDir);
+        const result = await this.runSingleTest(test, environment, baseUrl, screenshotsDir, viewport);
         results.push(result);
       }
     }
@@ -78,12 +86,14 @@ export class TestRunner {
     test: TestCase,
     environment: 'live' | 'dev',
     baseUrl: string,
-    screenshotsDir: string
+    screenshotsDir: string,
+    viewport: { name: string; slug: string; width: number; height: number }
   ): Promise<TestResult> {
     const startTime = Date.now();
     const startTimeIso = new Date().toISOString();
     const testName = test.name || test.route.replace(/^\//, '').replace(/\//g, '-') || 'test';
-    const screenshotPath = path.join(screenshotsDir, `${testName}.png`);
+    const screenshotFilename = `${testName}-${viewport.slug}.png`;
+    const screenshotPath = path.join(screenshotsDir, screenshotFilename);
 
     // Build the actual URL that will be tested
     const testUrl = this.buildTestUrl(baseUrl, test);
@@ -94,7 +104,7 @@ export class TestRunner {
       }
 
       const context = await this.browser.newContext({
-        viewport: this.config.viewport || { width: 1920, height: 1080 },
+        viewport: { width: viewport.width, height: viewport.height },
       });
 
       const page = await context.newPage();
@@ -123,7 +133,7 @@ export class TestRunner {
           Logger.warn(`Screenshot missing for ${test.route}, running fallback`);
 
           const fallbackContext = await this.browser.newContext({
-            viewport: this.config.viewport || { width: 1920, height: 1080 },
+            viewport: { width: viewport.width, height: viewport.height },
           });
           const fallbackPage = await fallbackContext.newPage();
 
@@ -141,6 +151,7 @@ export class TestRunner {
             screenshot: screenshotPath,
             duration,
             error: 'Screenshot not generated by AI test, fallback used',
+            viewport: viewport.slug,
             detailedResults: detailedResults || {
               testName: testName,
               status: 'failed',
@@ -163,6 +174,7 @@ export class TestRunner {
           passed: true,
           screenshot: screenshotPath,
           duration,
+          viewport: viewport.slug,
           detailedResults: detailedResults || {
             testName: testName,
             status: 'passed',
@@ -192,7 +204,7 @@ export class TestRunner {
           Logger.warn(`Screenshot missing after error for ${test.route}, running fallback`);
 
           const fallbackContext = await this.browser.newContext({
-            viewport: this.config.viewport || { width: 1920, height: 1080 },
+            viewport: { width: viewport.width, height: viewport.height },
           });
           const fallbackPage = await fallbackContext.newPage();
 
@@ -219,6 +231,7 @@ export class TestRunner {
           screenshot: screenshotPath,
           duration,
           error: (error as Error).message,
+          viewport: viewport.slug,
           detailedResults: {
             testName: testName,
             status: 'failed',
@@ -247,6 +260,7 @@ export class TestRunner {
         screenshot: screenshotPath,
         duration,
         error: (error as Error).message,
+        viewport: viewport.slug,
         detailedResults: {
           testName: testName,
           status: 'failed',

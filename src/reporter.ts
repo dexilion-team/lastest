@@ -190,9 +190,120 @@ export class ReportGenerator {
     `;
   }
 
+  private buildViewportComparisonView(report: Report, viewport: { name: string; slug: string; width: number; height: number }): string {
+    // Filter comparisons by viewport
+    const viewportComparisons = report.comparisons.filter(
+      c => c.viewport === viewport.slug
+    );
+
+    // Filter results by viewport
+    const viewportResults = report.detailedResults?.filter(
+      r => r.viewport === viewport.slug
+    ) || [];
+
+    const liveResults = viewportResults.filter(r => r.environment === 'live');
+    const devResults = viewportResults.filter(r => r.environment === 'dev');
+
+    const stats = {
+      live: {
+        total: liveResults.length,
+        passed: liveResults.filter(r => r.passed).length,
+        failed: liveResults.filter(r => !r.passed).length
+      },
+      dev: {
+        total: devResults.length,
+        passed: devResults.filter(r => r.passed).length,
+        failed: devResults.filter(r => !r.passed).length
+      }
+    };
+
+    const comparisonRows = viewportComparisons
+      .map((comp) => {
+        const statusClass = comp.hasDifferences ? 'diff' : 'match';
+        const statusText = comp.hasDifferences
+          ? `${comp.diffPercentage}% different`
+          : 'No differences';
+
+        return `
+        <tr class="${statusClass}">
+          <td>${comp.route}</td>
+          <td class="status">${statusText}</td>
+          <td class="screenshots">
+            <div class="screenshot-container">
+              <div class="screenshot-item">
+                <h4>Live</h4>
+                <img src="${path.relative(this.config.outputDir, comp.liveScreenshot)}" alt="Live" />
+              </div>
+              <div class="screenshot-item">
+                <h4>Dev</h4>
+                <img src="${path.relative(this.config.outputDir, comp.devScreenshot)}" alt="Dev" />
+              </div>
+              ${
+                comp.diffScreenshot
+                  ? `
+              <div class="screenshot-item">
+                <h4>Diff</h4>
+                <img src="${path.relative(this.config.outputDir, comp.diffScreenshot)}" alt="Diff" />
+              </div>
+              `
+                  : ''
+              }
+            </div>
+          </td>
+        </tr>
+      `;
+      })
+      .join('');
+
+    return `
+    <div class="viewport-section">
+      <h2>${viewport.name} (${viewport.width}x${viewport.height})</h2>
+
+      <div class="env-stat-row">
+        <div class="env-stat-item">
+          <div class="env-stat-label">Live Environment</div>
+          <div class="env-stat-value">
+            ${stats.live.passed}/${stats.live.total} passed
+          </div>
+        </div>
+        <div class="env-stat-item">
+          <div class="env-stat-label">Dev Environment</div>
+          <div class="env-stat-value">
+            ${stats.dev.passed}/${stats.dev.total} passed
+          </div>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Route</th>
+            <th>Status</th>
+            <th>Screenshots</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${comparisonRows}
+        </tbody>
+      </table>
+    </div>
+    `;
+  }
+
   private buildHtmlReport(report: Report): string {
     const comparisonView = this.buildComparisonView(report);
     const testResultsView = this.buildTestResultsView(report);
+
+    // Get viewports from config
+    const viewports = this.config.viewports || [
+      { name: 'Desktop', slug: 'desktop', width: 1920, height: 1080 }
+    ];
+
+    // Build viewport comparison views
+    const viewportViews = viewports.map(vp => ({
+      viewport: vp,
+      content: this.buildViewportComparisonView(report, vp)
+    }));
 
     return `
 <!DOCTYPE html>
@@ -551,6 +662,18 @@ export class ReportGenerator {
       border-radius: 6px;
     }
 
+    .viewport-section {
+      margin-bottom: 30px;
+    }
+
+    .viewport-section h2 {
+      font-size: 20px;
+      color: #374151;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
     footer {
       padding: 20px 40px;
       text-align: center;
@@ -615,6 +738,9 @@ export class ReportGenerator {
       <div class="tab active" data-tab="comparison">Visual Comparison</div>
       <div class="tab" data-tab="test-results">Test Results</div>
       <div class="tab" data-tab="playwright">Step-by-Step Comparison</div>
+      ${viewportViews.map(vv => `
+      <div class="tab" data-tab="viewport-${vv.viewport.slug}">${vv.viewport.name}</div>
+      `).join('')}
     </div>
 
     <div class="tab-content active" id="comparison">
@@ -628,6 +754,12 @@ export class ReportGenerator {
     <div class="tab-content" id="playwright">
       <iframe src="playwright-report/index.html" class="playwright-frame"></iframe>
     </div>
+
+    ${viewportViews.map(vv => `
+    <div class="tab-content" id="viewport-${vv.viewport.slug}">
+      ${vv.content}
+    </div>
+    `).join('')}
 
     <footer>
       Generated by <strong>lastest</strong> - AI-powered visual testing

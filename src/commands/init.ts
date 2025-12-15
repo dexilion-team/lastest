@@ -400,6 +400,22 @@ async function getConfigAnswers(options: InitOptions, existingConfig?: Config) {
       default: existingConfig?.screenshotHotkey || 'Control+Shift+KeyS',
     },
     {
+      type: 'list',
+      name: 'recordingViewport',
+      message: 'Select viewport for recording:',
+      when: (answers) => answers.testGenerationMode === 'record',
+      choices: (answers) => {
+        const viewports = answers.viewports || existingConfig?.viewports || [
+          { name: 'Desktop', slug: 'desktop', width: 1920, height: 1080 }
+        ];
+        return viewports.map((vp: any) => ({
+          name: `${vp.name} (${vp.width}x${vp.height})`,
+          value: vp
+        }));
+      },
+      default: 0,
+    },
+    {
       type: 'input',
       name: 'scanPath',
       message: 'Path to scan for routes:',
@@ -436,6 +452,40 @@ async function getConfigAnswers(options: InitOptions, existingConfig?: Config) {
       },
     },
   ]);
+
+  // Viewport selection prompt
+  const viewportChoices = [
+    { name: 'Desktop (1920x1080)', value: 'desktop', checked: true },
+    { name: 'Mobile - iPhone SE (375x667)', value: 'mobile', checked: true }
+  ];
+
+  // Prepopulate if existing config has viewports
+  if (existingConfig?.viewports) {
+    const existingSlugs = existingConfig.viewports.map(v => v.slug);
+    viewportChoices.forEach(choice => {
+      choice.checked = existingSlugs.includes(choice.value);
+    });
+  }
+
+  const { selectedViewports } = await inquirer.prompt([{
+    type: 'checkbox',
+    name: 'selectedViewports',
+    message: 'Select viewports to test:',
+    choices: viewportChoices,
+    validate: (answer) => {
+      if (answer.length < 1) {
+        return 'You must select at least one viewport.';
+      }
+      return true;
+    }
+  }]);
+
+  // Map selections to viewport config objects
+  const viewportMap: Record<string, { name: string; slug: string; width: number; height: number }> = {
+    desktop: { name: 'Desktop', slug: 'desktop', width: 1920, height: 1080 },
+    mobile: { name: 'Mobile (iPhone SE)', slug: 'mobile', width: 375, height: 667 }
+  };
+  answers.viewports = selectedViewports.map((slug: string) => viewportMap[slug]);
 
   return answers;
 }

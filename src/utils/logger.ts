@@ -61,7 +61,7 @@ export class Logger {
       '║                                                 Automated Visual Testing  ║',
       '║                                                         made by Dexilion  ║',
       '║                                                             dexilion.com  ║',
-      '║                                                                   v0.1.0  ║',
+      '║                                                                   v0.3.0  ║',
       '╚═══════════════════════════════════════════════════════════════════════════╝'
     ];
 

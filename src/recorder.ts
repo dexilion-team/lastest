@@ -16,6 +16,7 @@ export interface RecordingConfig {
   startUrl: string;
   screenshotHotkey: string;
   outputDir: string;
+  viewport?: { name: string; slug: string; width: number; height: number };
 }
 
 interface RecordedEvent {
@@ -66,6 +67,9 @@ export class TestRecorder {
    */
   async startRecording(): Promise<TestCase> {
     Logger.info('🎬 Starting recording session...');
+    if (this.config.viewport) {
+      Logger.info(`📱 Recording with ${this.config.viewport.name} viewport (${this.config.viewport.width}x${this.config.viewport.height})`);
+    }
 
     // Ensure screenshot directory exists
     if (!fs.existsSync(this.screenshotDir)) {
@@ -78,8 +82,13 @@ export class TestRecorder {
       args: ['--start-maximized'],
     });
 
+    // Use provided viewport or full window
+    const viewportConfig = this.config.viewport
+      ? { width: this.config.viewport.width, height: this.config.viewport.height }
+      : null;
+
     this.context = await this.browser.newContext({
-      viewport: null, // Use full window
+      viewport: viewportConfig,
       recordVideo: undefined, // Don't record video
     });
 

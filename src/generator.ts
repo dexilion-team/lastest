@@ -30,6 +30,7 @@ export class TestGenerator {
         startUrl: config.recordingStartUrl || config.liveUrl,
         screenshotHotkey: config.screenshotHotkey || 'Control+Shift+KeyS',
         outputDir: config.outputDir,
+        viewport: (config as any).recordingViewport, // Pass recording viewport if selected
       });
     } else {
       // AI mode
@@ -73,6 +74,9 @@ export class TestGenerator {
 
     const tests: TestCase[] = [];
     const testsDir = path.join(this.config.outputDir, 'tests');
+    const viewports = this.config.viewports || [
+      { name: 'Desktop', slug: 'desktop', width: 1920, height: 1080 }
+    ];
 
     await fs.ensureDir(testsDir);
 
@@ -83,24 +87,27 @@ export class TestGenerator {
         continue;
       }
 
-      try {
-        Logger.dim(`  Generating test for ${route.path}...`);
-        const code = await this.aiClient.generateTest(route);
+      for (const viewport of viewports) {
+        try {
+          Logger.dim(`  Generating test for ${route.path} on ${viewport.name}...`);
+          const code = await this.aiClient.generateTest(route, viewport);
 
-        const testName = this.getTestName(route.path);
-        const filePath = path.join(testsDir, `${testName}.ts`);
+          const testName = `${this.getTestName(route.path)}-${viewport.slug}`;
+          const filePath = path.join(testsDir, `${testName}.ts`);
 
-        await fs.writeFile(filePath, code);
+          await fs.writeFile(filePath, code);
 
-        tests.push({
-          name: testName,
-          route: route.path,
-          code,
-          filePath,
-          routerType: route.routerType,
-        });
-      } catch (error) {
-        Logger.captureError(error as Error, `Failed to generate test for ${route.path}`);
+          tests.push({
+            name: testName,
+            route: route.path,
+            code,
+            filePath,
+            routerType: route.routerType,
+            viewport: viewport.slug,
+          });
+        } catch (error) {
+          Logger.captureError(error as Error, `Failed to generate test for ${route.path} on ${viewport.name}`);
+        }
       }
     }
 
