@@ -26,9 +26,17 @@ export class TestRunner {
       for (const viewport of viewports) {
         Logger.info(`\nTesting with ${viewport.name} (${viewport.width}x${viewport.height})`);
 
+        // Filter tests for this specific viewport
+        const viewportTests = tests.filter(t => t.viewport === viewport.slug);
+
+        if (viewportTests.length === 0) {
+          Logger.dim(`  No tests for ${viewport.name}, skipping...`);
+          continue;
+        }
+
         // Run tests for live environment
         Logger.dim('  Testing live environment...');
-        const liveResults = await this.runTestsForEnvironment(tests, 'live', this.config.liveUrl, viewport);
+        const liveResults = await this.runTestsForEnvironment(viewportTests, 'live', this.config.liveUrl, viewport);
         results.push(...liveResults);
 
         const livePassed = liveResults.filter(r => r.passed).length;
@@ -37,7 +45,7 @@ export class TestRunner {
 
         // Run tests for dev environment
         Logger.dim('  Testing dev environment...');
-        const devResults = await this.runTestsForEnvironment(tests, 'dev', this.config.devUrl, viewport);
+        const devResults = await this.runTestsForEnvironment(viewportTests, 'dev', this.config.devUrl, viewport);
         results.push(...devResults);
 
         const devPassed = devResults.filter(r => r.passed).length;

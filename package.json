@@ -1,6 +1,6 @@
 {
   "name": "@dexilion/lastest",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "AI-powered automated visual testing CLI that compares live vs dev environments",
   "main": "dist/index.js",
   "bin": {
