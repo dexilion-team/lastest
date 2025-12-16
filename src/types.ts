@@ -30,6 +30,7 @@ export interface RouteInfo {
   filePath?: string;
   component?: string;
   routerType?: 'hash' | 'browser';
+  detectedBy?: 'traditional' | 'ai' | 'both';
 }
 
 export interface TestCase {

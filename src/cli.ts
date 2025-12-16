@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('lastest')
   .description('AI-powered automated visual testing CLI')
-  .version('0.3.0');
+  .version('0.3.1');
 
 export async function promptForErrorReport(): Promise<void> {
   if (ErrorLogger.hasErrors()) {

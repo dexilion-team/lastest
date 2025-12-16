@@ -3,6 +3,7 @@ import * as path from 'path';
 import { glob } from 'glob';
 import { RouteInfo, Config } from './types';
 import { Logger } from './utils/logger';
+import { mergeRoutes } from './utils/route-merger';
 
 export class Scanner {
   constructor(
@@ -13,8 +14,8 @@ export class Scanner {
   async scan(): Promise<RouteInfo[]> {
     // Check if AI route detection is enabled
     if (this.config?.useAIRouteDetection) {
-      Logger.dim('Using AI-powered route detection...');
-      return await this.aiDetectRoutes();
+      Logger.dim('Using hybrid route detection (traditional + AI)...');
+      return await this.scanHybrid();
     }
 
     const routes: RouteInfo[] = [];
@@ -41,6 +42,49 @@ export class Scanner {
     }
 
     return routes;
+  }
+
+  /**
+   * Hybrid route detection: combines traditional scanning with AI detection.
+   * Traditional routes take precedence, AI adds net-new routes.
+   * Falls back to traditional-only if AI fails.
+   */
+  private async scanHybrid(): Promise<RouteInfo[]> {
+    // Step 1: Run traditional scanning (always succeeds)
+    Logger.dim('  Running traditional framework scanning...');
+    const traditionalRoutes = await this.scanTraditional();
+    Logger.dim(`  Found ${traditionalRoutes.length} routes via traditional scanning`);
+
+    // Step 2: Attempt AI detection
+    Logger.dim('  Running AI-powered detection...');
+    let aiRoutes: RouteInfo[] = [];
+    try {
+      aiRoutes = await this.aiDetectRoutes();
+      Logger.dim(`  Found ${aiRoutes.length} routes via AI detection`);
+    } catch (error) {
+      Logger.warn(`AI detection failed: ${(error as Error).message}`);
+      Logger.warn('Continuing with traditional routes only');
+      return traditionalRoutes;
+    }
+
+    // Step 3: Merge routes with deduplication
+    const mergedRoutes = mergeRoutes(traditionalRoutes, aiRoutes);
+
+    // Step 4: Log summary
+    const newAIRoutes = mergedRoutes.length - traditionalRoutes.length;
+    if (newAIRoutes > 0) {
+      Logger.success(
+        `Hybrid detection found ${mergedRoutes.length} total routes ` +
+        `(${traditionalRoutes.length} traditional + ${newAIRoutes} AI-only)`
+      );
+    } else {
+      Logger.info(
+        `Hybrid detection found ${mergedRoutes.length} routes ` +
+        `(AI detected no new routes beyond traditional scanning)`
+      );
+    }
+
+    return mergedRoutes;
   }
 
   private async detectProjectType(): Promise<string> {
@@ -335,8 +379,7 @@ IMPORTANT:
       }
 
       if (!jsonString) {
-        Logger.warn('AI did not return valid JSON, falling back to traditional scanning');
-        return await this.scanTraditional();
+        throw new Error('Could not extract valid JSON from AI response');
       }
 
       // Parse and validate JSON
@@ -351,20 +394,15 @@ IMPORTANT:
         const routes: RouteInfo[] = this.validateRoutes(parsed);
 
         if (routes.length === 0) {
-          Logger.warn('No valid routes found in AI response, falling back to traditional scanning');
-          return await this.scanTraditional();
+          throw new Error('No valid routes found in AI response');
         }
 
         return routes;
       } catch (error) {
-        Logger.error(`Failed to parse AI response: ${(error as Error).message}`);
-        Logger.warn('Falling back to traditional route scanning...');
-        return await this.scanTraditional();
+        throw error;
       }
     } catch (error) {
-      Logger.error(`AI route detection failed: ${(error as Error).message}`);
-      Logger.warn('Falling back to traditional route scanning...');
-      return await this.scanTraditional();
+      throw error;
     }
   }
 

@@ -355,19 +355,27 @@ Implementation in `generator.ts`:
 
 **Traditional Scanning:**
 - Framework-specific glob patterns and regex
-- Fast, works for most standard projects
+- Fast, reliable for standard projects
+- Detects Next.js, React Router, Vue Router
 
 **AI-Powered Detection:**
 - Enabled via `useAIRouteDetection: true` in config
-- `Scanner` checks this flag in `scan()` method
-- Calls `aiDetectRoutes()` which:
-  1. Finds relevant routing files (routes, router, pages, app)
-  2. Sends file contents to Claude Agent SDK
-  3. Asks AI to extract route definitions as JSON
-  4. Parses response to RouteInfo array
-  5. Falls back to traditional scanning on error
+- Runs **hybrid mode**: traditional + AI detection
+- Traditional routes take precedence, AI adds net-new routes
+- Workflow:
+  1. Runs traditional framework scanning (establishes baseline)
+  2. Runs AI detection via Claude Agent SDK (finds custom patterns)
+  3. Deduplicates by route path (traditional wins conflicts)
+  4. Returns merged route list with detection metadata
+- Benefits: Maximum coverage - catches both standard and custom patterns
+- Graceful degradation: If AI fails, returns traditional routes only
+- Tracking: Routes include `detectedBy` field ('traditional', 'ai', or 'both')
 
-Benefits: Detects complex routing patterns, custom routers, micro-frontends
+**Route Deduplication:**
+- Primary key: `path` field (case-sensitive exact match)
+- Conflict resolution: Traditional route metadata preferred
+- Algorithm: Traditional routes + net-new AI routes only
+- Performance: O(n) merge using Map lookup
 
 ### Custom Test Instructions
 
