@@ -415,7 +415,7 @@ IMPORTANT:
     }
 
     // Deduplicate
-    return [...new Set(files)].slice(0, 20); // Limit to 20 files to avoid token limits
+    return [...new Set(files)]; // No limit - rely on AI provider's token limits
   }
 
   private async buildFilesContext(files: string[]): Promise<string> {
