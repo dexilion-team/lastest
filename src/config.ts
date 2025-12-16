@@ -42,7 +42,7 @@ export class ConfigManager {
     };
   }
 
-  private static migrateViewportConfig(config: any): Config {
+  private static migrateViewportConfig(config: Config & { viewport?: { width: number; height: number } }): Config {
     // Migrate old single viewport to viewports array
     if (config.viewport && !config.viewports) {
       config.viewports = [{

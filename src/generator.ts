@@ -26,11 +26,12 @@ export class TestGenerator {
       this.mcpGenerator = new MCPGenerator(config);
     } else if (mode === 'record') {
       // Recording mode - interactive browser recording
+      const recordingViewport = (config as Config & { recordingViewport?: { name: string; slug: string; width: number; height: number } }).recordingViewport;
       this.recorder = new TestRecorder({
         startUrl: config.recordingStartUrl || config.liveUrl,
         screenshotHotkey: config.screenshotHotkey || 'Control+Shift+KeyS',
         outputDir: config.outputDir,
-        viewport: (config as any).recordingViewport, // Pass recording viewport if selected
+        viewport: recordingViewport,
       });
     } else {
       // AI mode

@@ -126,10 +126,10 @@ describe('TestGenerator', () => {
 
       const tests = await generator.generateTests(routes);
 
-      expect(tests[0].name).toBe('home');
-      expect(tests[1].name).toBe('about');
-      expect(tests[2].name).toBe('blog-posts');
-      expect(tests[3].name).toBe('contact-us');
+      expect(tests[0].name).toBe('home-desktop');
+      expect(tests[1].name).toBe('about-desktop');
+      expect(tests[2].name).toBe('blog-posts-desktop');
+      expect(tests[3].name).toBe('contact-us-desktop');
     });
   });
 

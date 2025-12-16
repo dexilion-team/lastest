@@ -90,7 +90,12 @@ describe('ConfigManager', () => {
       await ConfigManager.save(config, tempDir);
       const loaded = await ConfigManager.load(tempDir);
 
-      expect(loaded).toEqual(config);
+      // Expect viewport migration to viewports array
+      expect(loaded.viewports).toBeDefined();
+      expect(loaded.viewports).toHaveLength(1);
+      expect(loaded.viewports![0].width).toBe(1280);
+      expect(loaded.viewports![0].height).toBe(720);
+      expect(loaded.viewport).toBeUndefined();
     });
   });
 

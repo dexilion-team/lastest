@@ -408,7 +408,7 @@ async function getConfigAnswers(options: InitOptions, existingConfig?: Config) {
         const viewports = answers.viewports || existingConfig?.viewports || [
           { name: 'Desktop', slug: 'desktop', width: 1920, height: 1080 }
         ];
-        return viewports.map((vp: any) => ({
+        return viewports.map((vp: { name: string; slug: string; width: number; height: number }) => ({
           name: `${vp.name} (${vp.width}x${vp.height})`,
           value: vp
         }));
